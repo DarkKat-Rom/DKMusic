@@ -16,4 +16,6 @@
 <resources>
 
     <string name="app_name">DarkKat Music</string>
+    <string name="default_song_title">Title:</string>
+    <string name="default_artist_title">Artist:</string>
 </resources>
