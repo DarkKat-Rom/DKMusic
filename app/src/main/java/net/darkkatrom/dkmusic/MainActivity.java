@@ -26,7 +26,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -37,12 +36,10 @@ import android.widget.TextView;
  */
 public final class MainActivity extends AppCompatActivity {
 
-    public static final String TAG = "MainActivity";
+    public static final String TAG = "DKMusic/MainActivity";
     public static final int MEDIA_RES_ID = R.raw.jazz_in_paris;
 
     private View mRoot;
-    private ScrollView mScrollContainer;
-    private TextView mTextDebug;
     private ImageView mAlbumArt;
     private SeekBar mSeekbarAudio;
     private TextView mSongPlayTime;
@@ -63,31 +60,29 @@ public final class MainActivity extends AppCompatActivity {
         initializeUI();
         initializeSeekbar();
         initializePlaybackController();
-        Log.d(TAG, "onCreate: finished");
+        log("onCreate: finished");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         mPlayerAdapter.loadMedia(MEDIA_RES_ID);
-        Log.d(TAG, "onStart: create MediaPlayer");
+        log("onStart: create MediaPlayer");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         if (isChangingConfigurations() && mPlayerAdapter.isPlaying()) {
-            Log.d(TAG, "onStop: don't release MediaPlayer as screen is rotating & playing");
+            log("onStop: don't release MediaPlayer as screen is rotating & playing");
         } else {
             mPlayerAdapter.release();
-            Log.d(TAG, "onStop: release MediaPlayer");
+            log("onStop: release MediaPlayer");
         }
     }
 
     private void initializeUI() {
         mRoot = findViewById(R.id.root);
-        mScrollContainer = (ScrollView) findViewById(R.id.scroll_container);
-        mTextDebug = (TextView) findViewById(R.id.text_debug);
         mAlbumArt = (ImageView) findViewById(R.id.album_art);
         mSeekbarAudio = (SeekBar) findViewById(R.id.seekbar_audio);
         mSongPlayTime = (TextView) findViewById(R.id.song_play_time);
@@ -118,6 +113,7 @@ public final class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         mPlayerAdapter.reset();
+                        mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
                     }
                 });
     }
@@ -153,10 +149,10 @@ public final class MainActivity extends AppCompatActivity {
 
     private void initializePlaybackController() {
         MediaPlayerHolder mMediaPlayerHolder = new MediaPlayerHolder(this);
-        Log.d(TAG, "initializePlaybackController: created MediaPlayerHolder");
+        log("initializePlaybackController: created MediaPlayerHolder");
         mMediaPlayerHolder.setPlaybackInfoListener(new PlaybackListener());
         mPlayerAdapter = mMediaPlayerHolder;
-        Log.d(TAG, "initializePlaybackController: MediaPlayerHolder progress callback set");
+        log("initializePlaybackController: MediaPlayerHolder progress callback set");
     }
 
     private void initializeSeekbar() {
@@ -224,6 +220,10 @@ public final class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void log(String message) {
+        Log.d(TAG, message);
+    }
+
     public class PlaybackListener extends PlaybackInfoListener {
 
         @Override
@@ -231,14 +231,14 @@ public final class MainActivity extends AppCompatActivity {
             mSeekbarAudio.setMax(duration);
             mDuration = duration;
             updateTimes(0);
-            Log.d(TAG, String.format("setPlaybackDuration: setMax(%d)", duration));
+            log(String.format("setPlaybackDuration: setMax(%d)", duration));
         }
 
         @Override
         public void onPositionChanged(int position) {
             if (!mUserIsSeeking) {
                 mSeekbarAudio.setProgress(position, true);
-                Log.d(TAG, String.format("setPlaybackPosition: setProgress(%d)", position));
+                log(String.format("setPlaybackPosition: setProgress(%d)", position));
                 updateTimes(position);
             }
         }
@@ -255,18 +255,7 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLogUpdated(String message) {
-            if (mTextDebug != null) {
-                mTextDebug.append(message);
-                mTextDebug.append("\n");
-                // Moves the scrollContainer focus to the end.
-                mScrollContainer.post(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                mScrollContainer.fullScroll(ScrollView.FOCUS_DOWN);
-                            }
-                        });
-            }
+            log(message);
         }
     }
 }
