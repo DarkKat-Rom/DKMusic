@@ -38,6 +38,7 @@ public final class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "DKMusic/MainActivity";
     public static final int MEDIA_RES_ID = R.raw.jazz_in_paris;
+    public static boolean DEBUG = false;
 
     private View mRoot;
     private ImageView mAlbumArt;
@@ -221,7 +222,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void log(String message) {
-        Log.d(TAG, message);
+        if (DEBUG) {
+            Log.d(TAG, message);
+        }
     }
 
     public class PlaybackListener extends PlaybackInfoListener {
