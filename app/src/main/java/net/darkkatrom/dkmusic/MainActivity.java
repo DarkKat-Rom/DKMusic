@@ -25,7 +25,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -50,6 +49,9 @@ public final class MainActivity extends AppCompatActivity {
     private TextView mSongTimeRemaining;
     private TextView mTitle;
     private TextView mArtist;
+    private ImageView mAlbumArtSmall;
+    private ImageView mPlayPauseButton;
+    private ImageView mResetButton;
     private PlayerAdapter mPlayerAdapter;
     private boolean mUserIsSeeking = false;
     private int mDuration;
@@ -92,24 +94,23 @@ public final class MainActivity extends AppCompatActivity {
         mSongTimeRemaining = (TextView) findViewById(R.id.song_time_remaining);
         mTitle = (TextView) findViewById(R.id.song_title);
         mArtist = (TextView) findViewById(R.id.artist_title);
-        Button mPlayButton = (Button) findViewById(R.id.button_play);
-        Button mPauseButton = (Button) findViewById(R.id.button_pause);
-        Button mResetButton = (Button) findViewById(R.id.button_reset);
+        mAlbumArtSmall = (ImageView) findViewById(R.id.album_art_small);
+        mPlayPauseButton = (ImageView) findViewById(R.id.button_play_pause);
+        mResetButton = (ImageView) findViewById(R.id.button_reset);
 
         applyMediaMetadata();
 
-        mPauseButton.setOnClickListener(
+        mPlayPauseButton.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        mPlayerAdapter.pause();
-                    }
-                });
-        mPlayButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        mPlayerAdapter.play();
+                        if (mPlayerAdapter.isPlaying()) {
+                            mPlayerAdapter.pause();
+                            mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
+                        } else {
+                            mPlayerAdapter.play();
+                            mPlayPauseButton.setImageResource(R.drawable.ic_action_pause);
+                        }
                     }
                 });
         mResetButton.setOnClickListener(
@@ -130,6 +131,7 @@ public final class MainActivity extends AppCompatActivity {
         if (data != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
             mAlbumArt.setImageBitmap(bitmap);
+            mAlbumArtSmall.setImageBitmap(bitmap);
         }
 
         String defaultSongTitle = getString(R.string.default_song_title);

@@ -107,32 +107,51 @@
     </LinearLayout>
 
     <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical"
+        android:background="?attr/colorBackgroundFloating"
+        android:elevation="4dp"
+        android:orientation="horizontal">
 
-        <Button
-                android:id="@+id/button_play"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="4"
-                android:text="Play"/>
+        <ImageView
+            android:id="@+id/album_art_small"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/default_artwork"
+            android:scaleType="centerInside" />
 
-        <Button
-                android:id="@+id/button_pause"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Pause"/>
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
-        <Button
-                android:id="@+id/button_reset"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Reset"/>
+        <ImageView
+            android:id="@+id/button_play_pause"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="6dp"
+            android:src="@drawable/ic_action_play"
+            android:scaleType="centerCrop"
+            android:background="@drawable/ripple_drawable_borderless_24dp" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/button_reset"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_action_reset"
+            android:scaleType="centerCrop"
+            android:background="@drawable/ripple_drawable_borderless_24dp" />
 
     </LinearLayout>
 
