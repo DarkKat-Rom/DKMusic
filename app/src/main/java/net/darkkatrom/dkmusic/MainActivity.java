@@ -41,6 +41,10 @@ public final class MainActivity extends AppCompatActivity {
     public static boolean DEBUG = false;
 
     private View mRoot;
+    private View mListItem;
+    private ImageView mListItemAlbumArtSmall;
+    private TextView mListItemTitle;
+    private TextView mListItemArtist;
     private ImageView mAlbumArt;
     private SeekBar mSeekbarAudio;
     private TextView mSongPlayTime;
@@ -53,6 +57,8 @@ public final class MainActivity extends AppCompatActivity {
     private PlayerAdapter mPlayerAdapter;
     private boolean mUserIsSeeking = false;
     private int mDuration;
+
+    private MediaMetadataRetriever mRetriever;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +90,10 @@ public final class MainActivity extends AppCompatActivity {
 
     private void initializeUI() {
         mRoot = findViewById(R.id.root);
+        mListItem = findViewById(R.id.list_item_root);
+        mListItemAlbumArtSmall = (ImageView) findViewById(R.id.list_item_album_art_small);
+        mListItemTitle = (TextView) findViewById(R.id.list_item_song_title);
+        mListItemArtist = (TextView) findViewById(R.id.list_item_artist_title);
         mAlbumArt = (ImageView) findViewById(R.id.album_art);
         mSeekbarAudio = (SeekBar) findViewById(R.id.seekbar_audio);
         mSongPlayTime = (TextView) findViewById(R.id.song_play_time);
@@ -94,8 +104,24 @@ public final class MainActivity extends AppCompatActivity {
         mPlayPauseButton = (ImageView) findViewById(R.id.button_play_pause);
         mResetButton = (ImageView) findViewById(R.id.button_reset);
 
-        applyMediaMetadata();
+        mListItem.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        applyMediaMetadata();
+                        mSeekbarAudio.setEnabled(true);
+                        mPlayPauseButton.setEnabled(true);
+                        mResetButton.setEnabled(true);
+                        view.setEnabled(false);
+                        updateTimes(0);
+                    }
+                });
 
+        setupRetriever();
+
+        mSeekbarAudio.setEnabled(false);
+
+        mPlayPauseButton.setEnabled(false);
         mPlayPauseButton.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -109,22 +135,56 @@ public final class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+        mResetButton.setEnabled(false);
         mResetButton.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         mPlayerAdapter.reset();
                         mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
+                        removeMediaMetadata();
+                        mListItem.setEnabled(true);
+                        mSeekbarAudio.setEnabled(false);
+                        mPlayPauseButton.setEnabled(false);
+                        view.setEnabled(false);
+                        updateTimes(0);
                     }
                 });
     }
 
-    private void applyMediaMetadata() {
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+    private void setupRetriever() {
+        mRetriever = new MediaMetadataRetriever();
         Uri path = Uri.parse("android.resource://" + getPackageName()  + "/" + MEDIA_RES_ID);
 
-        mmr.setDataSource(this, path);
-        byte [] data = mmr.getEmbeddedPicture();
+        mRetriever.setDataSource(this, path);
+        byte [] data = mRetriever.getEmbeddedPicture();
+        if (data != null) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+            mListItemAlbumArtSmall.setImageBitmap(bitmap);
+        }
+
+        String defaultSongTitle = getString(R.string.default_song_title);
+        String defaultArtistTitle = getString(R.string.default_artist_title);
+        String songTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        String artistTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+
+        if (songTitle == null) {
+            mListItemTitle.setText(defaultSongTitle + " -");
+        } else {
+            mListItemTitle.setText(defaultSongTitle + " " + songTitle);
+        }
+        if (artistTitle == null) {
+            mListItemArtist.setText(defaultArtistTitle + " -");
+        } else {
+            mListItemArtist.setText(defaultArtistTitle + " " + artistTitle);
+        }
+
+        mTitle.setText(defaultSongTitle + " -");
+        mArtist.setText(defaultArtistTitle + " -");
+    }
+
+    private void applyMediaMetadata() {
+        byte [] data = mRetriever.getEmbeddedPicture();
         if (data != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
             mAlbumArt.setImageBitmap(bitmap);
@@ -133,8 +193,8 @@ public final class MainActivity extends AppCompatActivity {
 
         String defaultSongTitle = getString(R.string.default_song_title);
         String defaultArtistTitle = getString(R.string.default_artist_title);
-        String songTitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-        String artistTitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+        String songTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        String artistTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
 
         if (songTitle == null) {
             mTitle.setText(defaultSongTitle + " -");
@@ -146,6 +206,16 @@ public final class MainActivity extends AppCompatActivity {
         } else {
             mArtist.setText(defaultArtistTitle + " " + artistTitle);
         }
+    }
+
+    private void removeMediaMetadata() {
+        mAlbumArt.setImageResource(R.drawable.default_artwork);
+        mAlbumArtSmall.setImageResource(R.drawable.default_artwork);
+
+        String defaultSongTitle = getString(R.string.default_song_title);
+        String defaultArtistTitle = getString(R.string.default_artist_title);
+        mTitle.setText(defaultSongTitle + " -");
+        mArtist.setText(defaultArtistTitle + " -");
     }
 
     private void initializePlaybackController() {
@@ -215,8 +285,8 @@ public final class MainActivity extends AppCompatActivity {
 
                 mSongPlayTime.setTextColor(textColor);
                 mSongTimeRemaining.setTextColor(textColor);
-                mSongPlayTime.setText(playTime);
-                mSongTimeRemaining.setText(timeRemaining);
+                mSongPlayTime.setText(mSeekbarAudio.isEnabled() ? playTime : "0:00");
+                mSongTimeRemaining.setText(mSeekbarAudio.isEnabled() ? timeRemaining : "-0:00");
             }
         });
     }
