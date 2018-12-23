@@ -23,6 +23,8 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.BottomSheetBehavior.BottomSheetCallback;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -54,6 +56,8 @@ public final class MainActivity extends AppCompatActivity {
     private TextView mSongTimeRemaining;
     private TextView mTitle;
     private TextView mArtist;
+    private ImageView mPlayPauseButtonBig;
+    private View mBottomSheetBar;
     private ImageView mAlbumArtSmall;
     private ImageView mPlayPauseButton;
     private ImageView mResetButton;
@@ -62,7 +66,7 @@ public final class MainActivity extends AppCompatActivity {
     private int mDuration;
 
     private MediaMetadataRetriever mRetriever;
-
+    private LockableBottomSheetBehavior mBottomSheetBehavior;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +109,8 @@ public final class MainActivity extends AppCompatActivity {
         mSongTimeRemaining = (TextView) findViewById(R.id.song_time_remaining);
         mTitle = (TextView) findViewById(R.id.song_title);
         mArtist = (TextView) findViewById(R.id.artist_title);
+        mPlayPauseButtonBig = (ImageView) findViewById(R.id.button_play_pause_big);
+        mBottomSheetBar = findViewById(R.id.bottom_sheet_bar);
         mAlbumArtSmall = (ImageView) findViewById(R.id.album_art_small);
         mPlayPauseButton = (ImageView) findViewById(R.id.button_play_pause);
         mResetButton = (ImageView) findViewById(R.id.button_reset);
@@ -119,12 +125,36 @@ public final class MainActivity extends AppCompatActivity {
                         mResetButton.setEnabled(true);
                         view.setEnabled(false);
                         updateTimes(0);
+                        mBottomSheetBehavior.setLocked(false);
                     }
                 });
 
         setupRetriever();
 
+        mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
+                findViewById(R.id.bottom_sheet));
+        mBottomSheetBehavior.setBottomSheetCallback(new Callback());
+        mBottomSheetBehavior.setLocked(true);
+
         mSeekbarAudio.setEnabled(false);
+
+        mPlayPauseButtonBig.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (mPlayerAdapter.isPlaying()) {
+                            mPlayerAdapter.pause();
+                            mPlayPauseButtonBig.setImageResource(
+                                    R.drawable.ic_action_play_circle_outline);
+                            mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
+                        } else {
+                            mPlayerAdapter.play();
+                            mPlayPauseButtonBig.setImageResource(
+                                    R.drawable.ic_action_pause_circle_outline);
+                            mPlayPauseButton.setImageResource(R.drawable.ic_action_pause);
+                        }
+                    }
+                });
 
         mPlayPauseButton.setEnabled(false);
         mPlayPauseButton.setOnClickListener(
@@ -133,9 +163,13 @@ public final class MainActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         if (mPlayerAdapter.isPlaying()) {
                             mPlayerAdapter.pause();
+                            mPlayPauseButtonBig.setImageResource(
+                                    R.drawable.ic_action_play_circle_outline);
                             mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
                         } else {
                             mPlayerAdapter.play();
+                            mPlayPauseButtonBig.setImageResource(
+                                    R.drawable.ic_action_pause_circle_outline);
                             mPlayPauseButton.setImageResource(R.drawable.ic_action_pause);
                         }
                     }
@@ -153,6 +187,7 @@ public final class MainActivity extends AppCompatActivity {
                         mPlayPauseButton.setEnabled(false);
                         view.setEnabled(false);
                         updateTimes(0);
+                        mBottomSheetBehavior.setLocked(true);
                     }
                 });
     }
@@ -299,6 +334,43 @@ public final class MainActivity extends AppCompatActivity {
     private void log(String message) {
         if (DEBUG) {
             Log.d(TAG, message);
+        }
+    }
+
+    public class Callback extends BottomSheetCallback {
+
+        @Override
+        public void onStateChanged(View bottomSheet, int newState) {
+            switch (newState) {
+                case BottomSheetBehavior.STATE_HIDDEN:
+                    break;
+                case BottomSheetBehavior.STATE_EXPANDED:
+                    break;
+                case BottomSheetBehavior.STATE_COLLAPSED:
+                    break;
+                case BottomSheetBehavior.STATE_DRAGGING:
+                    break;
+                case BottomSheetBehavior.STATE_SETTLING:
+                    break;
+            }
+        }
+
+        @Override
+        public void onSlide(View bottomSheet, float slideOffset) {
+            if (slideOffset >= 0) {
+                mBottomSheetBar.setAlpha(1f - slideOffset);
+                if (slideOffset > 0) {
+                    if (mPlayPauseButton.isEnabled()) {
+                        mPlayPauseButton.setEnabled(false);
+                    }
+                    if (mResetButton.isEnabled()) {
+                        mResetButton.setEnabled(false);
+                    }
+                } else {
+                    mPlayPauseButton.setEnabled(true);
+                    mResetButton.setEnabled(true);
+                }
+            }
         }
     }
 
