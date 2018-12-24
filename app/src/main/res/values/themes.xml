@@ -25,4 +25,15 @@
         <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
         <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
     </style>
+
+    <!-- App theme DarkKat -->
+    <style name="SettingsDarkKat"  parent="@style/Theme.AppCompat">
+        <item name="colorPrimary">@color/primary_theme_dark</item>
+        <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
+        <item name="colorAccent">@color/accent_theme</item>
+        <item name="android:colorBackground">@color/darkkat_blue_grey</item>
+        <item name="colorBackgroundFloating">@color/darkkat_blue_blue_grey</item>
+        <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
+        <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
+    </style>
 </resources>

@@ -16,6 +16,17 @@
 <resources>
 
     <string name="app_name">DarkKat Music</string>
+    <string name="settings_title">Settings</string>
     <string name="default_song_title">Title:</string>
     <string name="default_artist_title">Artist:</string>
+    <string name="dlg_cancel">Cancel</string>
+    <string name="dlg_ok">OK</string>
+
+    <string name="show_visualizer_title">Show music visualizer</string>
+    <string name="show_visualizer_summary_on">Visualizer will be shown</string>
+    <string name="show_visualizer_summary_off">Visualizer won\'t be shown</string>
+
+    <string name="permission_dialog_title">Record audio</string>
+    <string name="permission_dialog_message">The music visualizer needs the permission to \"Record audion\".\nThis permisssion can be granted or denied at any time via:\n(System) Settings -> \"Apps &amp; notifications\" -> \"DarkKat Music\" -> \"Permissions\" -> \"Microphone\".\nClick on \"OK\" to show the system dialog to grant the permission,\nclick on \"Cancel\" to disable the music visualizer.</string>
+    <string name="toast_message">permission denied, visualizer disabled</string>
 </resources>

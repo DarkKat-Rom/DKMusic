@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.darkkatrom.dkmusic">
 
+    <!-- Audio Visualizer Permissions -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -9,6 +13,11 @@
 
         <activity
             android:name=".MainActivity" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_title"
+            android:theme="@style/SettingsDarkKat" />
 
         <activity-alias
             android:name=".LauncherActivity"

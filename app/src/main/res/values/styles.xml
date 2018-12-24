@@ -15,16 +15,9 @@
 -->
 <resources>
 
-    <!-- Overlay for theme default action-, navigation- and status bar colors -->
-    <color name="primary_theme_dark">@color/primary_darkkat</color>
-    <color name="primary_dark_theme_dark">@color/primary_dark_darkkat</color>
-
-    <!-- Overlay for theme default accent color -->
-    <color name="accent_theme">@color/accent_darkkat</color>
-
-    <!-- Background for toasts -->
-    <color name="toast_background">#e6263238</color> <!-- 90% Material Blue Grey 900 -->
-
-    <!-- Color for the visualizer bars -->
-    <color name="visualizer_fill_color">#bffafafa</color>
+    <style name="TextAppearanceToast">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
 </resources>

@@ -18,6 +18,7 @@
 
 package net.darkkatrom.dkmusic;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
@@ -29,6 +30,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -51,6 +54,7 @@ public final class MainActivity extends AppCompatActivity {
     private TextView mListItemTitle;
     private TextView mListItemArtist;
     private ImageView mAlbumArt;
+    private VisualizerView mVisualizerView;
     private SeekBar mSeekbarAudio;
     private TextView mSongPlayTime;
     private TextView mSongTimeRemaining;
@@ -64,6 +68,7 @@ public final class MainActivity extends AppCompatActivity {
     private PlayerAdapter mPlayerAdapter;
     private boolean mUserIsSeeking = false;
     private int mDuration;
+    private boolean mShowVisualizer;
 
     private MediaMetadataRetriever mRetriever;
     private LockableBottomSheetBehavior mBottomSheetBehavior;
@@ -77,6 +82,13 @@ public final class MainActivity extends AppCompatActivity {
         initializeSeekbar();
         initializePlaybackController();
         log("onCreate: finished");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        updateVisualizer();
     }
 
     @Override
@@ -97,6 +109,23 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.item_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
     private void initializeUI() {
         mRoot = findViewById(R.id.root);
         mListItem = findViewById(R.id.list_item_root);
@@ -104,6 +133,7 @@ public final class MainActivity extends AppCompatActivity {
         mListItemTitle = (TextView) findViewById(R.id.list_item_song_title);
         mListItemArtist = (TextView) findViewById(R.id.list_item_artist_title);
         mAlbumArt = (ImageView) findViewById(R.id.album_art);
+        mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
         mSeekbarAudio = (SeekBar) findViewById(R.id.seekbar_audio);
         mSongPlayTime = (TextView) findViewById(R.id.song_play_time);
         mSongTimeRemaining = (TextView) findViewById(R.id.song_time_remaining);
@@ -131,6 +161,9 @@ public final class MainActivity extends AppCompatActivity {
 
         setupRetriever();
 
+        mVisualizerView.initialize(this);
+        mShowVisualizer = Config.getShowVisualizer(this);
+
         mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
                 findViewById(R.id.bottom_sheet));
         mBottomSheetBehavior.setBottomSheetCallback(new Callback());
@@ -147,11 +180,15 @@ public final class MainActivity extends AppCompatActivity {
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_play_circle_outline);
                             mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
+                            mVisualizerView.setPlaying(false);
                         } else {
                             mPlayerAdapter.play();
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_pause_circle_outline);
                             mPlayPauseButton.setImageResource(R.drawable.ic_action_pause);
+                            if (mShowVisualizer) {
+                                mVisualizerView.setPlaying(true);
+                            }
                         }
                     }
                 });
@@ -166,11 +203,15 @@ public final class MainActivity extends AppCompatActivity {
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_play_circle_outline);
                             mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
+                            mVisualizerView.setPlaying(false);
                         } else {
                             mPlayerAdapter.play();
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_pause_circle_outline);
                             mPlayPauseButton.setImageResource(R.drawable.ic_action_pause);
+                            if (mShowVisualizer) {
+                                mVisualizerView.setPlaying(true);
+                            }
                         }
                     }
                 });
@@ -188,6 +229,7 @@ public final class MainActivity extends AppCompatActivity {
                         view.setEnabled(false);
                         updateTimes(0);
                         mBottomSheetBehavior.setLocked(true);
+                        mVisualizerView.setPlaying(false);
                     }
                 });
     }
@@ -329,6 +371,22 @@ public final class MainActivity extends AppCompatActivity {
                 mSongTimeRemaining.setText(mSeekbarAudio.isEnabled() ? timeRemaining : "-0:00");
             }
         });
+    }
+
+    private void updateVisualizer() {
+        boolean show = Config.getShowVisualizer(this);
+        if (mShowVisualizer != show) {
+            mShowVisualizer = show;
+            if (mPlayerAdapter.isPlaying()) {
+                if (mShowVisualizer) {
+                    mVisualizerView.setPlaying(true);
+                } else {
+                    mVisualizerView.setPlaying(false);
+                }
+            } else {
+                mVisualizerView.setPlaying(false);
+            }
+        }
     }
 
     private void log(String message) {
