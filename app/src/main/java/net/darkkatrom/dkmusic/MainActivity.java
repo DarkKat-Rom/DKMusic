@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetBehavior.BottomSheetCallback;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
@@ -69,6 +70,8 @@ public final class MainActivity extends AppCompatActivity {
     private boolean mUserIsSeeking = false;
     private int mDuration;
     private boolean mShowVisualizer;
+    private int mDefaultVisualizerColor = 0xbffafafa;
+    private int mVisualizerColor = 0;
 
     private MediaMetadataRetriever mRetriever;
     private LockableBottomSheetBehavior mBottomSheetBehavior;
@@ -82,6 +85,8 @@ public final class MainActivity extends AppCompatActivity {
         initializeSeekbar();
         initializePlaybackController();
         log("onCreate: finished");
+
+        mDefaultVisualizerColor = getColor(R.color.visualizer_fill_color);
     }
 
     @Override
@@ -159,9 +164,10 @@ public final class MainActivity extends AppCompatActivity {
                     }
                 });
 
+        mVisualizerView.initialize(this);
+
         setupRetriever();
 
-        mVisualizerView.initialize(this);
         mShowVisualizer = Config.getShowVisualizer(this);
 
         mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
@@ -269,9 +275,15 @@ public final class MainActivity extends AppCompatActivity {
         byte [] data = mRetriever.getEmbeddedPicture();
         if (data != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-            mAlbumArt.setImageBitmap(bitmap);
+            Bitmap scaledBitmap = getScaledBitmap(bitmap);
             mAlbumArtSmall.setImageBitmap(bitmap);
+            mAlbumArt.setImageBitmap(scaledBitmap);
+            Palette p = Palette.from(scaledBitmap).generate();
+            mVisualizerColor = p.getDarkVibrantColor(0xbffafafa);
+        } else {
+            mVisualizerColor = mDefaultVisualizerColor;
         }
+        mVisualizerView.setColor(mVisualizerColor);
 
         String defaultSongTitle = getString(R.string.default_song_title);
         String defaultArtistTitle = getString(R.string.default_artist_title);
@@ -288,6 +300,15 @@ public final class MainActivity extends AppCompatActivity {
         } else {
             mArtist.setText(defaultArtistTitle + " " + artistTitle);
         }
+    }
+
+    private Bitmap getScaledBitmap(Bitmap bitmap) {
+        float aspectRatio = mAlbumArt.getWidth() / 
+            (float) mAlbumArt.getHeight();
+        int width = mAlbumArt.getWidth();
+        int height = Math.round(width / aspectRatio);
+
+        return Bitmap.createScaledBitmap(bitmap, width, height, false);
     }
 
     private void removeMediaMetadata() {
