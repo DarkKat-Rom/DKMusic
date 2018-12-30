@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +23,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import net.darkkatrom.dkmusic.R;
+import net.darkkatrom.dkmusic.GlideApp;
+import net.darkkatrom.dkmusic.models.Song;
 
 import java.util.ArrayList;
 import java.util.List;

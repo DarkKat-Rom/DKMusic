@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.models;
 
 import android.content.ContentUris;
 import android.net.Uri;

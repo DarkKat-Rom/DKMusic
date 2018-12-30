@@ -24,7 +24,7 @@
     android:background="?android:attr/colorBackground"
     android:orientation="vertical"
     app:behavior_peekHeight="64dp"
-    app:layout_behavior="net.darkkatrom.dkmusic.LockableBottomSheetBehavior">
+    app:layout_behavior="net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior">
 
     <LinearLayout
         android:id="@+id/bottom_sheet_bar"
@@ -86,7 +86,7 @@
                 android:src="@drawable/default_artwork"
                 android:scaleType="centerInside" />
 
-            <net.darkkatrom.dkmusic.VisualizerView
+            <net.darkkatrom.dkmusic.widgets.VisualizerView
                 android:id="@+id/visualizerView"
                 android:layout_width="@dimen/album_art_big_size"
                 android:layout_height="@dimen/album_art_big_size"

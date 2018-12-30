@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.widgets;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
@@ -27,6 +27,8 @@ import android.media.audiofx.Visualizer;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.View;
+
+import net.darkkatrom.dkmusic.R;
 
 public class VisualizerView extends View {
     private Paint mPaint;

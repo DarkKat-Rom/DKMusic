@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.activities;
 
 import android.Manifest.permission;
 import android.content.ContentResolver;
@@ -46,6 +46,17 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.request.FutureTarget;
+
+import net.darkkatrom.dkmusic.R;
+import net.darkkatrom.dkmusic.GlideApp;
+import net.darkkatrom.dkmusic.adapters.PlayerAdapter;
+import net.darkkatrom.dkmusic.adapters.SongAdapter;
+import net.darkkatrom.dkmusic.holders.MediaPlayerHolder;
+import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
+import net.darkkatrom.dkmusic.models.Song;
+import net.darkkatrom.dkmusic.utils.Config;
+import net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior;
+import net.darkkatrom.dkmusic.widgets.VisualizerView;
 
 import java.lang.InterruptedException;
 import java.util.ArrayList;

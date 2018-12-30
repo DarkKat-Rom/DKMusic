@@ -15,26 +15,26 @@
  * limitations under the License.
  */
 
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.adapters;
 
 /**
  * Allows {@link MainActivity} to control media playback of {@link MediaPlayerHolder}.
  */
 public interface PlayerAdapter {
 
-    void setDataSource(String data);
+    public void setDataSource(String data);
 
-    void release();
+    public void release();
 
-    boolean isPlaying();
+    public boolean isPlaying();
 
-    void play();
+    public void play();
 
-    void reset();
+    public void reset();
 
-    void pause();
+    public void pause();
 
-    void initializeProgressCallback();
+    public void initializeProgressCallback();
 
-    void seekTo(int position);
+    public void seekTo(int position);
 }

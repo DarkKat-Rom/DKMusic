@@ -14,16 +14,16 @@
         android:theme="@style/AppThemeDarkKat">
 
         <activity
-            android:name=".MainActivity" />
+            android:name=".activities.MainActivity" />
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".activities.SettingsActivity"
             android:label="@string/settings_title"
             android:theme="@style/SettingsDarkKat" />
 
         <activity-alias
             android:name=".LauncherActivity"
-            android:targetActivity=".MainActivity">
+            android:targetActivity=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

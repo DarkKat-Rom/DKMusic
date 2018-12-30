@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.widgets;
 
 import android.content.Context;
 import android.support.design.widget.BottomSheetBehavior;

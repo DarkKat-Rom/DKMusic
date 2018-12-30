@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.fragments;
 
 import android.Manifest.permission;
 import android.app.AlertDialog;
@@ -32,6 +32,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Toast;
+
+import net.darkkatrom.dkmusic.R;
+import net.darkkatrom.dkmusic.utils.Config;
 
 public class SettingsFragment extends PreferenceFragment implements
         OnSharedPreferenceChangeListener {

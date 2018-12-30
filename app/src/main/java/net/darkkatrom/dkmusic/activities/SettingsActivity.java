@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.activities;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import net.darkkatrom.dkmusic.SettingsFragment;
+import net.darkkatrom.dkmusic.R;
+import net.darkkatrom.dkmusic.fragments.SettingsFragment;
 
 public class SettingsActivity extends AppCompatActivity {
 

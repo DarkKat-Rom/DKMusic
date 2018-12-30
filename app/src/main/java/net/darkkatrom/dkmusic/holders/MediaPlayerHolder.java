@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
-package net.darkkatrom.dkmusic;
+package net.darkkatrom.dkmusic.holders;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
+
+import net.darkkatrom.dkmusic.adapters.PlayerAdapter;
+import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
