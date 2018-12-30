@@ -18,16 +18,22 @@
 
 package net.darkkatrom.dkmusic;
 
+import android.Manifest.permission;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetBehavior.BottomSheetCallback;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
@@ -35,25 +41,32 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.bumptech.glide.request.FutureTarget;
+
+import java.lang.InterruptedException;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 /**
  * Allows playback of a single MP3 file via the UI. It contains a {@link MediaPlayerHolder}
  * which implements the {@link PlayerAdapter} interface that the activity uses to control
  * audio playback.
  */
-public final class MainActivity extends AppCompatActivity {
+public final class MainActivity extends AppCompatActivity implements
+        SongAdapter.OnSongClickedListener {
 
     public static final String TAG = "DKMusic/MainActivity";
-    public static final int MEDIA_RES_ID = R.raw.jazz_in_paris;
     public static boolean DEBUG = false;
 
     private View mRoot;
-    private View mListItem;
-    private ImageView mListItemAlbumArtSmall;
-    private TextView mListItemTitle;
-    private TextView mListItemArtist;
+    private TextView mLoadingMediaText;
+    private ProgressBar mLoadingMediaProgress;
+    private RecyclerView mList;
     private ImageView mAlbumArt;
     private VisualizerView mVisualizerView;
     private SeekBar mSeekbarAudio;
@@ -65,7 +78,6 @@ public final class MainActivity extends AppCompatActivity {
     private View mBottomSheetBar;
     private ImageView mAlbumArtSmall;
     private ImageView mPlayPauseButton;
-    private ImageView mResetButton;
     private PlayerAdapter mPlayerAdapter;
     private boolean mUserIsSeeking = false;
     private int mDuration;
@@ -73,14 +85,20 @@ public final class MainActivity extends AppCompatActivity {
     private int mDefaultVisualizerColor = 0xbffafafa;
     private int mVisualizerColor = 0;
 
-    private MediaMetadataRetriever mRetriever;
+    private boolean mCanReadExternalStorage = false;
+
     private LockableBottomSheetBehavior mBottomSheetBehavior;
+
+    private List<Song> mSongs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mCanReadExternalStorage = checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
         initializeUI();
         initializeSeekbar();
         initializePlaybackController();
@@ -93,14 +111,11 @@ public final class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        if (mCanReadExternalStorage != (checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED)) {
+            checkPermission();
+        }
         updateVisualizer();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mPlayerAdapter.loadMedia(MEDIA_RES_ID);
-        log("onStart: create MediaPlayer");
     }
 
     @Override
@@ -133,10 +148,9 @@ public final class MainActivity extends AppCompatActivity {
 
     private void initializeUI() {
         mRoot = findViewById(R.id.root);
-        mListItem = findViewById(R.id.list_item_root);
-        mListItemAlbumArtSmall = (ImageView) findViewById(R.id.list_item_album_art_small);
-        mListItemTitle = (TextView) findViewById(R.id.list_item_song_title);
-        mListItemArtist = (TextView) findViewById(R.id.list_item_artist_title);
+        mLoadingMediaText = (TextView) findViewById(R.id.loading_media_text);
+        mLoadingMediaProgress = (ProgressBar) findViewById(R.id.loading_media_progress);
+        mList = (RecyclerView) findViewById(R.id.list);
         mAlbumArt = (ImageView) findViewById(R.id.album_art);
         mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
         mSeekbarAudio = (SeekBar) findViewById(R.id.seekbar_audio);
@@ -148,25 +162,10 @@ public final class MainActivity extends AppCompatActivity {
         mBottomSheetBar = findViewById(R.id.bottom_sheet_bar);
         mAlbumArtSmall = (ImageView) findViewById(R.id.album_art_small);
         mPlayPauseButton = (ImageView) findViewById(R.id.button_play_pause);
-        mResetButton = (ImageView) findViewById(R.id.button_reset);
 
-        mListItem.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        applyMediaMetadata();
-                        mSeekbarAudio.setEnabled(true);
-                        mPlayPauseButton.setEnabled(true);
-                        mResetButton.setEnabled(true);
-                        view.setEnabled(false);
-                        updateTimes(0);
-                        mBottomSheetBehavior.setLocked(false);
-                    }
-                });
+        checkPermission();
 
         mVisualizerView.initialize(this);
-
-        setupRetriever();
 
         mShowVisualizer = Config.getShowVisualizer(this);
 
@@ -221,94 +220,52 @@ public final class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-        mResetButton.setEnabled(false);
-        mResetButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        mPlayerAdapter.reset();
-                        mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
-                        removeMediaMetadata();
-                        mListItem.setEnabled(true);
-                        mSeekbarAudio.setEnabled(false);
-                        mPlayPauseButton.setEnabled(false);
-                        view.setEnabled(false);
-                        updateTimes(0);
-                        mBottomSheetBehavior.setLocked(true);
-                        mVisualizerView.setPlaying(false);
-                    }
-                });
     }
 
-    private void setupRetriever() {
-        mRetriever = new MediaMetadataRetriever();
-        Uri path = Uri.parse("android.resource://" + getPackageName()  + "/" + MEDIA_RES_ID);
-
-        mRetriever.setDataSource(this, path);
-        byte [] data = mRetriever.getEmbeddedPicture();
-        if (data != null) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-            mListItemAlbumArtSmall.setImageBitmap(bitmap);
-        }
-
-        String defaultSongTitle = getString(R.string.default_song_title);
-        String defaultArtistTitle = getString(R.string.default_artist_title);
-        String songTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-        String artistTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-
-        if (songTitle == null) {
-            mListItemTitle.setText(defaultSongTitle + " -");
-        } else {
-            mListItemTitle.setText(defaultSongTitle + " " + songTitle);
-        }
-        if (artistTitle == null) {
-            mListItemArtist.setText(defaultArtistTitle + " -");
-        } else {
-            mListItemArtist.setText(defaultArtistTitle + " " + artistTitle);
-        }
-
-        mTitle.setText(defaultSongTitle + " -");
-        mArtist.setText(defaultArtistTitle + " -");
+    private void setupList() {
+        mSongs = new ArrayList<Song>();
+        LoadSongsTask task = new LoadSongsTask(this, mList, mSongs, this, mLoadingMediaText,
+                mLoadingMediaProgress);
+        task.execute();
     }
 
-    private void applyMediaMetadata() {
-        byte [] data = mRetriever.getEmbeddedPicture();
-        if (data != null) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-            Bitmap scaledBitmap = getScaledBitmap(bitmap);
-            mAlbumArtSmall.setImageBitmap(bitmap);
-            mAlbumArt.setImageBitmap(scaledBitmap);
-            Palette p = Palette.from(scaledBitmap).generate();
-            mVisualizerColor = p.getDarkVibrantColor(0xbffafafa);
-        } else {
-            mVisualizerColor = mDefaultVisualizerColor;
-        }
-        mVisualizerView.setColor(mVisualizerColor);
+    private void applyMediaMetadata(final Song song) {
+        GlideApp.with(this)
+            .asBitmap()
+            .load(song.getAlbumArtUri())
+            .placeholder(R.drawable.default_artwork)
+            .fitCenter()
+            .into(mAlbumArtSmall);
+        mTitle.setText(song.getTitle());
+        mArtist.setText(song.getArtist());
 
-        String defaultSongTitle = getString(R.string.default_song_title);
-        String defaultArtistTitle = getString(R.string.default_artist_title);
-        String songTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-        String artistTitle = mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+        GlideApp.with(this)
+            .asBitmap()
+            .load(song.getAlbumArtUri())
+            .placeholder(R.drawable.default_artwork)
+            .fitCenter()
+            .into(mAlbumArt);
+     
+        AsyncTask.execute(new Runnable() {
+           @Override
+           public void run() {
+                FutureTarget<Bitmap> futureTarget = GlideApp
+                    .with(MainActivity.this)
+                    .asBitmap()
+                    .load(song.getAlbumArtUri())
+                    .submit();
 
-        if (songTitle == null) {
-            mTitle.setText(defaultSongTitle + " -");
-        } else {
-            mTitle.setText(defaultSongTitle + " " + songTitle);
-        }
-        if (artistTitle == null) {
-            mArtist.setText(defaultArtistTitle + " -");
-        } else {
-            mArtist.setText(defaultArtistTitle + " " + artistTitle);
-        }
-    }
-
-    private Bitmap getScaledBitmap(Bitmap bitmap) {
-        float aspectRatio = mAlbumArt.getWidth() / 
-            (float) mAlbumArt.getHeight();
-        int width = mAlbumArt.getWidth();
-        int height = Math.round(width / aspectRatio);
-
-        return Bitmap.createScaledBitmap(bitmap, width, height, false);
+                try {
+                    Bitmap bitmap = futureTarget.get();
+                    Palette p = Palette.from(bitmap).generate();
+                    mVisualizerColor = p.getDarkVibrantColor(mDefaultVisualizerColor);
+                } catch (ExecutionException | InterruptedException e) {
+                    mVisualizerColor = mDefaultVisualizerColor;
+                }
+                mVisualizerView.setColor(mVisualizerColor);
+                futureTarget.cancel(false);
+           }
+        });
     }
 
     private void removeMediaMetadata() {
@@ -416,6 +373,58 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onSongClicked(Song song, int position) {
+        applyMediaMetadata(song);
+        mSeekbarAudio.setEnabled(true);
+        mPlayPauseButton.setEnabled(true);
+        updateTimes(0);
+        mBottomSheetBehavior.setLocked(false);
+        mPlayerAdapter.setDataSource(song.getData());
+    }
+
+    private void checkPermission() {
+        if (checkSelfPermission(permission.READ_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { permission.READ_EXTERNAL_STORAGE }, 1);
+        } else {
+            mCanReadExternalStorage = true;
+            setupList();
+        }
+    }
+
+    private int getLoadingTextColor(boolean error) {
+        TypedValue tv = new TypedValue();
+        int textColor = 0;
+        int resId = error
+                ? R.attr.colorError : android.R.attr.textColorPrimary;
+        getTheme().resolveAttribute(resId, tv, true);
+        if (tv.type >= TypedValue.TYPE_FIRST_COLOR_INT
+                && tv.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+            textColor = tv.data;
+        } else {
+            textColor = getColor(tv.resourceId);
+        }
+        return textColor;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (requestCode == 1) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mCanReadExternalStorage = true;
+                setupList();
+            } else {
+                mCanReadExternalStorage = false;
+                mLoadingMediaText.setTextColor(getLoadingTextColor(true));
+                mLoadingMediaText.setText(R.string.loading_media_missing_permission_title);
+                mLoadingMediaProgress.setVisibility(View.GONE);
+            }
+            return;
+        }
+    }
+
     public class Callback extends BottomSheetCallback {
 
         @Override
@@ -442,14 +451,77 @@ public final class MainActivity extends AppCompatActivity {
                     if (mPlayPauseButton.isEnabled()) {
                         mPlayPauseButton.setEnabled(false);
                     }
-                    if (mResetButton.isEnabled()) {
-                        mResetButton.setEnabled(false);
-                    }
                 } else {
                     mPlayPauseButton.setEnabled(true);
-                    mResetButton.setEnabled(true);
                 }
             }
+        }
+    }
+
+    public class LoadSongsTask extends AsyncTask<Void, Integer, String> {
+        Context context;
+        RecyclerView rv;
+        SongAdapter adapter;
+        List<Song> songs;
+        SongAdapter.OnSongClickedListener listener;
+        TextView text;
+        ProgressBar progressBar;
+
+        public LoadSongsTask(Context context, RecyclerView rv, List<Song> songs,
+                SongAdapter.OnSongClickedListener listener, TextView text, ProgressBar progressBar) {
+            this.context = context;
+            this.rv = rv;
+            this.songs = songs;
+            this.listener = listener;
+            this.text = text;
+            this.progressBar = progressBar;
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            ContentResolver contentResolver = getContentResolver();
+
+            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
+            String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
+            Cursor cursor = contentResolver.query(uri, null, selection, null, sortOrder);
+            int currentCount = 1;
+            if (cursor != null && cursor.getCount() > 0) {
+                int progressMax = cursor.getCount();
+                while (cursor.moveToNext()) {
+                    String data = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                    String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                    String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                    String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                    long albumId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ID));
+                    songs.add(new Song(data, title, artist, album, albumId));
+                    publishProgress(cursor.getCount(), currentCount);
+                    currentCount ++;
+                }
+            }
+            cursor.close();
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            if (progress[1] == 1) {
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setMax(progress[0]);
+                text.setTextColor(getLoadingTextColor(false));
+                text.setText(R.string.loading_media_title);
+            }
+            progressBar.setProgress(progress[1]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            SongAdapter adapter = new SongAdapter(context, songs);
+            adapter.setOnSongClickedListener(listener);
+            text.setVisibility(View.GONE);
+            progressBar.setVisibility(View.GONE);
+            rv.setVisibility(View.VISIBLE);
+            rv.setAdapter(adapter);
         }
     }
 

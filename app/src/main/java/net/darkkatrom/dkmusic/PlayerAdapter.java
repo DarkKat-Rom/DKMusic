@@ -22,7 +22,7 @@ package net.darkkatrom.dkmusic;
  */
 public interface PlayerAdapter {
 
-    void loadMedia(int resourceId);
+    void setDataSource(String data);
 
     void release();
 

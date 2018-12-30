@@ -40,8 +40,8 @@
 
         <ImageView
             android:id="@+id/album_art_small"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="@dimen/album_art_small_size"
+            android:layout_height="@dimen/album_art_small_size"
             android:src="@drawable/default_artwork"
             android:scaleType="centerInside" />
 
@@ -54,6 +54,7 @@
             android:id="@+id/button_play_pause"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:layout_marginEnd="45dp"
             android:padding="6dp"
             android:src="@drawable/ic_action_play"
             android:scaleType="centerCrop"
@@ -63,15 +64,6 @@
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
-
-        <ImageView
-            android:id="@+id/button_reset"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_action_reset"
-            android:scaleType="centerCrop"
-            android:background="@drawable/ripple_drawable_borderless_24dp" />
 
     </LinearLayout>
 
@@ -83,21 +75,21 @@
         android:orientation="vertical">
 
         <FrameLayout
-            android:layout_width="250dp"
-            android:layout_height="250dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="16dp">
 
             <ImageView
                 android:id="@+id/album_art"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="@dimen/album_art_big_size"
+                android:layout_height="@dimen/album_art_big_size"
                 android:src="@drawable/default_artwork"
                 android:scaleType="centerInside" />
 
             <net.darkkatrom.dkmusic.VisualizerView
                 android:id="@+id/visualizerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="@dimen/album_art_big_size"
+                android:layout_height="@dimen/album_art_big_size"
                 android:layout_gravity="bottom"
                 android:gravity="bottom"
                 android:visibility="visible" />

@@ -22,6 +22,9 @@
     <string name="dlg_cancel">Abbrechen</string>
     <string name="dlg_ok">OK</string>
 
+    <string name="loading_media_title">Medien werden geladen ...</string>
+    <string name="loading_media_missing_permission_title">Laden der Medien fehlgeschlagen, keine Berechtigung um Medien zu lesen</string>
+
     <string name="show_visualizer_title">Musik-Visualisierung anzeigen</string>
     <string name="show_visualizer_summary_on">Visualisierung wird angezeigt</string>
     <string name="show_visualizer_summary_off">Visualisierung wird nicht angezeigt</string>

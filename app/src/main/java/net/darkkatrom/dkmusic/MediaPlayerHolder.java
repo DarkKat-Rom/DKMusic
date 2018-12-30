@@ -35,7 +35,6 @@ public final class MediaPlayerHolder implements PlayerAdapter {
 
     private final Context mContext;
     private MediaPlayer mMediaPlayer;
-    private int mResourceId;
     private PlaybackInfoListener mPlaybackInfoListener;
     private ScheduledExecutorService mExecutor;
     private Runnable mSeekbarPositionUpdateTask;
@@ -73,31 +72,22 @@ public final class MediaPlayerHolder implements PlayerAdapter {
         mPlaybackInfoListener = listener;
     }
 
-    // Implements PlaybackControl.
     @Override
-    public void loadMedia(int resourceId) {
-        mResourceId = resourceId;
-
+    public void setDataSource(String data) {
         initializeMediaPlayer();
 
-        AssetFileDescriptor assetFileDescriptor =
-                mContext.getResources().openRawResourceFd(mResourceId);
+        mMediaPlayer.reset();
         try {
-            logToUI("load() {1. setDataSource}");
-            mMediaPlayer.setDataSource(assetFileDescriptor);
+            mMediaPlayer.setDataSource(data);
         } catch (Exception e) {
-            logToUI(e.toString());
         }
 
         try {
-            logToUI("load() {2. prepare}");
             mMediaPlayer.prepare();
-        } catch (Exception e) {
-            logToUI(e.toString());
+        } catch (Exception e) {;
         }
 
         initializeProgressCallback();
-        logToUI("initializeProgressCallback()");
     }
 
     @Override
@@ -120,8 +110,6 @@ public final class MediaPlayerHolder implements PlayerAdapter {
     @Override
     public void play() {
         if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
-            logToUI(String.format("playbackStart() %s",
-                                  mContext.getResources().getResourceEntryName(mResourceId)));
             mMediaPlayer.start();
             if (mPlaybackInfoListener != null) {
                 mPlaybackInfoListener.onStateChanged(PlaybackInfoListener.State.PLAYING);
@@ -135,7 +123,6 @@ public final class MediaPlayerHolder implements PlayerAdapter {
         if (mMediaPlayer != null) {
             logToUI("playbackReset()");
             mMediaPlayer.reset();
-            loadMedia(mResourceId);
             if (mPlaybackInfoListener != null) {
                 mPlaybackInfoListener.onStateChanged(PlaybackInfoListener.State.RESET);
             }
