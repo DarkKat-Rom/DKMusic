@@ -135,12 +135,12 @@ public final class SongListFragment extends Fragment implements
     @Override
     public void onStop() {
         super.onStop();
-        if (getActivity().isChangingConfigurations() && mPlayerAdapter.isPlaying()) {
-            log("onStop: don't release MediaPlayer as screen is rotating & playing");
-        } else {
+//        if (getActivity().isChangingConfigurations() && mPlayerAdapter.isPlaying()) {
+//            log("onStop: don't release MediaPlayer as screen is rotating & playing");
+//        } else {
             mPlayerAdapter.release();
             log("onStop: release MediaPlayer");
-        }
+//        }
     }
 
     @Override
