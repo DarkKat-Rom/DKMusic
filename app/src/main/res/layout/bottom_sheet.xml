@@ -52,7 +52,7 @@
             android:layout_weight="1" />
 
         <ImageView
-            android:id="@+id/button_play_pause"
+            android:id="@+id/button_play_pause_small"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginEnd="45dp"
@@ -81,7 +81,7 @@
             android:layout_marginBottom="16dp">
 
             <ImageView
-                android:id="@+id/album_art"
+                android:id="@+id/album_art_big"
                 android:layout_width="@dimen/album_art_big_size"
                 android:layout_height="@dimen/album_art_big_size"
                 android:src="@drawable/default_artwork"

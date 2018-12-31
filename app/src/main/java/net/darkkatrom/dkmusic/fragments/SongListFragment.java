@@ -67,14 +67,17 @@ import java.util.List;
 public final class SongListFragment extends Fragment implements
         SongAdapter.OnSongClickedListener {
 
-    public static final String TAG = "DKMusic/MainActivity";
+    public static final String TAG = "DKMusic/SongListFragment";
     public static boolean DEBUG = false;
 
     private View mRoot;
     private TextView mLoadingMediaText;
     private ProgressBar mLoadingMediaProgress;
     private RecyclerView mList;
-    private ImageView mAlbumArt;
+    private View mBottomSheetBar;
+    private ImageView mAlbumArtSmall;
+    private ImageView mPlayPauseButtonSmall;
+    private ImageView mAlbumArtBig;
     private VisualizerView mVisualizerView;
     private SeekBar mSeekbarAudio;
     private TextView mSongPlayTime;
@@ -82,19 +85,16 @@ public final class SongListFragment extends Fragment implements
     private TextView mTitle;
     private TextView mArtist;
     private ImageView mPlayPauseButtonBig;
-    private View mBottomSheetBar;
-    private ImageView mAlbumArtSmall;
-    private ImageView mPlayPauseButton;
+
+    private LockableBottomSheetBehavior mBottomSheetBehavior;
     private PlayerAdapter mPlayerAdapter;
+
+    private boolean mCanReadExternalStorage = false;
     private boolean mUserIsSeeking = false;
     private int mDuration;
     private boolean mShowVisualizer;
-    private int mDefaultVisualizerColor = 0xbffafafa;
+    private int mDefaultVisualizerColor = 0;
     private int mVisualizerColor = 0;
-
-    private boolean mCanReadExternalStorage = false;
-
-    private LockableBottomSheetBehavior mBottomSheetBehavior;
 
     private List<Song> mSongs;
 
@@ -107,15 +107,16 @@ public final class SongListFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        mRoot = inflater.inflate(R.layout.fragment_song_list, container, false);
         mCanReadExternalStorage = getActivity().checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
+        mDefaultVisualizerColor = getActivity().getColor(R.color.visualizer_fill_color);
+
+        mRoot = inflater.inflate(R.layout.fragment_song_list, container, false);
         initializeUI();
         initializeSeekbar();
         initializePlaybackController();
-        log("onCreate: finished");
 
-        mDefaultVisualizerColor = getActivity().getColor(R.color.visualizer_fill_color);
+        log("onCreateView: finished");
         return mRoot;
     }
 
@@ -123,7 +124,8 @@ public final class SongListFragment extends Fragment implements
     public void onResume() {
         super.onResume();
 
-        if (mCanReadExternalStorage != (getActivity().checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
+        if (mCanReadExternalStorage
+                != (getActivity().checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED)) {
             checkPermission();
         }
@@ -157,11 +159,31 @@ public final class SongListFragment extends Fragment implements
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (requestCode == 1) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mCanReadExternalStorage = true;
+                setupList();
+            } else {
+                mCanReadExternalStorage = false;
+                mLoadingMediaText.setTextColor(getLoadingTextColor(true));
+                mLoadingMediaText.setText(R.string.loading_media_missing_permission_title);
+                mLoadingMediaProgress.setVisibility(View.GONE);
+            }
+            return;
+        }
+    }
+
     private void initializeUI() {
         mLoadingMediaText = (TextView) mRoot.findViewById(R.id.loading_media_text);
         mLoadingMediaProgress = (ProgressBar) mRoot.findViewById(R.id.loading_media_progress);
         mList = (RecyclerView) mRoot.findViewById(R.id.list);
-        mAlbumArt = (ImageView) mRoot.findViewById(R.id.album_art);
+        mBottomSheetBar = mRoot.findViewById(R.id.bottom_sheet_bar);
+        mAlbumArtSmall = (ImageView) mRoot.findViewById(R.id.album_art_small);
+        mPlayPauseButtonSmall = (ImageView) mRoot.findViewById(R.id.button_play_pause_small);
+        mAlbumArtBig = (ImageView) mRoot.findViewById(R.id.album_art_big);
         mVisualizerView = (VisualizerView) mRoot.findViewById(R.id.visualizerView);
         mSeekbarAudio = (SeekBar) mRoot.findViewById(R.id.seekbar_audio);
         mSongPlayTime = (TextView) mRoot.findViewById(R.id.song_play_time);
@@ -169,18 +191,14 @@ public final class SongListFragment extends Fragment implements
         mTitle = (TextView) mRoot.findViewById(R.id.song_title);
         mArtist = (TextView) mRoot.findViewById(R.id.artist_title);
         mPlayPauseButtonBig = (ImageView) mRoot.findViewById(R.id.button_play_pause_big);
-        mBottomSheetBar = mRoot.findViewById(R.id.bottom_sheet_bar);
-        mAlbumArtSmall = (ImageView) mRoot.findViewById(R.id.album_art_small);
-        mPlayPauseButton = (ImageView) mRoot.findViewById(R.id.button_play_pause);
+        mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
+                mRoot.findViewById(R.id.bottom_sheet));
 
         checkPermission();
 
         mVisualizerView.initialize(getActivity());
-
         mShowVisualizer = Config.getShowVisualizer(getActivity());
 
-        mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
-                mRoot.findViewById(R.id.bottom_sheet));
         mBottomSheetBehavior.setBottomSheetCallback(new Callback());
         mBottomSheetBehavior.setLocked(true);
 
@@ -194,13 +212,13 @@ public final class SongListFragment extends Fragment implements
                             mPlayerAdapter.pause();
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_play_circle_outline);
-                            mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
+                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_play);
                             mVisualizerView.setPlaying(false);
                         } else {
                             mPlayerAdapter.play();
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_pause_circle_outline);
-                            mPlayPauseButton.setImageResource(R.drawable.ic_action_pause);
+                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_pause);
                             if (mShowVisualizer) {
                                 mVisualizerView.setPlaying(true);
                             }
@@ -208,8 +226,8 @@ public final class SongListFragment extends Fragment implements
                     }
                 });
 
-        mPlayPauseButton.setEnabled(false);
-        mPlayPauseButton.setOnClickListener(
+        mPlayPauseButtonSmall.setEnabled(false);
+        mPlayPauseButtonSmall.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -217,75 +235,19 @@ public final class SongListFragment extends Fragment implements
                             mPlayerAdapter.pause();
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_play_circle_outline);
-                            mPlayPauseButton.setImageResource(R.drawable.ic_action_play);
+                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_play);
                             mVisualizerView.setPlaying(false);
                         } else {
                             mPlayerAdapter.play();
                             mPlayPauseButtonBig.setImageResource(
                                     R.drawable.ic_action_pause_circle_outline);
-                            mPlayPauseButton.setImageResource(R.drawable.ic_action_pause);
+                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_pause);
                             if (mShowVisualizer) {
                                 mVisualizerView.setPlaying(true);
                             }
                         }
                     }
                 });
-    }
-
-    private void setupList() {
-        mSongs = new ArrayList<Song>();
-        LoadSongsTask task = new LoadSongsTask(getActivity(), mList, mSongs, this, mLoadingMediaText,
-                mLoadingMediaProgress);
-        task.execute();
-    }
-
-    private void applyMediaMetadata(final Song song) {
-        GlideApp.with(this)
-            .asBitmap()
-            .load(song.getAlbumArtUri())
-            .placeholder(R.drawable.default_artwork)
-            .fitCenter()
-            .into(mAlbumArtSmall);
-        mTitle.setText(song.getTitle());
-        mArtist.setText(song.getArtist());
-
-        GlideApp.with(this)
-            .asBitmap()
-            .load(song.getAlbumArtUri())
-            .placeholder(R.drawable.default_artwork)
-            .fitCenter()
-            .into(mAlbumArt);
-     
-        AsyncTask.execute(new Runnable() {
-           @Override
-           public void run() {
-                FutureTarget<Bitmap> futureTarget = GlideApp
-                    .with(SongListFragment.this)
-                    .asBitmap()
-                    .load(song.getAlbumArtUri())
-                    .submit();
-
-                try {
-                    Bitmap bitmap = futureTarget.get();
-                    Palette p = Palette.from(bitmap).generate();
-                    mVisualizerColor = p.getDarkVibrantColor(mDefaultVisualizerColor);
-                } catch (ExecutionException | InterruptedException e) {
-                    mVisualizerColor = mDefaultVisualizerColor;
-                }
-                mVisualizerView.setColor(mVisualizerColor);
-                futureTarget.cancel(false);
-           }
-        });
-    }
-
-    private void removeMediaMetadata() {
-        mAlbumArt.setImageResource(R.drawable.default_artwork);
-        mAlbumArtSmall.setImageResource(R.drawable.default_artwork);
-
-        String defaultSongTitle = getString(R.string.default_song_title);
-        String defaultArtistTitle = getString(R.string.default_artist_title);
-        mTitle.setText(defaultSongTitle + " -");
-        mArtist.setText(defaultArtistTitle + " -");
     }
 
     private void initializePlaybackController() {
@@ -320,6 +282,62 @@ public final class SongListFragment extends Fragment implements
                         mPlayerAdapter.seekTo(userSelectedPosition);
                     }
                 });
+    }
+
+    private void setupList() {
+        mSongs = new ArrayList<Song>();
+        LoadSongsTask task = new LoadSongsTask(getActivity(), mList, mSongs, this, mLoadingMediaText,
+                mLoadingMediaProgress);
+        task.execute();
+    }
+
+    private void applyMediaMetadata(final Song song) {
+        GlideApp.with(this)
+            .asBitmap()
+            .load(song.getAlbumArtUri())
+            .placeholder(R.drawable.default_artwork)
+            .fitCenter()
+            .into(mAlbumArtSmall);
+        mTitle.setText(song.getTitle());
+        mArtist.setText(song.getArtist());
+
+        GlideApp.with(this)
+            .asBitmap()
+            .load(song.getAlbumArtUri())
+            .placeholder(R.drawable.default_artwork)
+            .fitCenter()
+            .into(mAlbumArtBig);
+     
+        AsyncTask.execute(new Runnable() {
+           @Override
+           public void run() {
+                FutureTarget<Bitmap> futureTarget = GlideApp
+                    .with(SongListFragment.this)
+                    .asBitmap()
+                    .load(song.getAlbumArtUri())
+                    .submit();
+
+                try {
+                    Bitmap bitmap = futureTarget.get();
+                    Palette p = Palette.from(bitmap).generate();
+                    mVisualizerColor = p.getDarkVibrantColor(mDefaultVisualizerColor);
+                } catch (ExecutionException | InterruptedException e) {
+                    mVisualizerColor = mDefaultVisualizerColor;
+                }
+                mVisualizerView.setColor(mVisualizerColor);
+                futureTarget.cancel(false);
+           }
+        });
+    }
+
+    private void removeMediaMetadata() {
+        mAlbumArtBig.setImageResource(R.drawable.default_artwork);
+        mAlbumArtSmall.setImageResource(R.drawable.default_artwork);
+
+        String defaultSongTitle = getString(R.string.default_song_title);
+        String defaultArtistTitle = getString(R.string.default_artist_title);
+        mTitle.setText(defaultSongTitle + " -");
+        mArtist.setText(defaultArtistTitle + " -");
     }
 
     private void updateTimes(final int position) {
@@ -377,17 +395,11 @@ public final class SongListFragment extends Fragment implements
         }
     }
 
-    private void log(String message) {
-        if (DEBUG) {
-            Log.d(TAG, message);
-        }
-    }
-
     @Override
     public void onSongClicked(Song song, int position) {
         applyMediaMetadata(song);
         mSeekbarAudio.setEnabled(true);
-        mPlayPauseButton.setEnabled(true);
+        mPlayPauseButtonSmall.setEnabled(true);
         updateTimes(0);
         mBottomSheetBehavior.setLocked(false);
         mPlayerAdapter.setDataSource(song.getData());
@@ -418,20 +430,9 @@ public final class SongListFragment extends Fragment implements
         return textColor;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if (requestCode == 1) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mCanReadExternalStorage = true;
-                setupList();
-            } else {
-                mCanReadExternalStorage = false;
-                mLoadingMediaText.setTextColor(getLoadingTextColor(true));
-                mLoadingMediaText.setText(R.string.loading_media_missing_permission_title);
-                mLoadingMediaProgress.setVisibility(View.GONE);
-            }
-            return;
+    private void log(String message) {
+        if (DEBUG) {
+            Log.d(TAG, message);
         }
     }
 
@@ -458,11 +459,11 @@ public final class SongListFragment extends Fragment implements
             if (slideOffset >= 0) {
                 mBottomSheetBar.setAlpha(1f - slideOffset);
                 if (slideOffset > 0) {
-                    if (mPlayPauseButton.isEnabled()) {
-                        mPlayPauseButton.setEnabled(false);
+                    if (mPlayPauseButtonSmall.isEnabled()) {
+                        mPlayPauseButtonSmall.setEnabled(false);
                     }
                 } else {
-                    mPlayPauseButton.setEnabled(true);
+                    mPlayPauseButtonSmall.setEnabled(true);
                 }
             }
         }
