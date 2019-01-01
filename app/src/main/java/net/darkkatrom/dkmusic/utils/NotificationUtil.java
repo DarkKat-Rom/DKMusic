@@ -21,18 +21,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.Intent;
 import android.media.session.MediaSession;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.text.TextPaint;
-import android.graphics.Rect;
-import android.graphics.Typeface;
-import android.graphics.drawable.Icon;
 import android.os.Bundle;
-import android.widget.RemoteViews;
-import android.widget.TextView;
 
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.activities.MainActivity;
@@ -44,7 +36,6 @@ public class NotificationUtil {
             "music_playback_notification_chanel";
 
     private final Context mContext;
-    private final Resources mResources;
 
     private String mTitle;
     private String mText;
@@ -52,7 +43,6 @@ public class NotificationUtil {
 
     public NotificationUtil(Context context) {
         mContext = context;
-        mResources = context.getResources();
     }
 
     public void sendNotification(String title, String text, Bitmap artwork, boolean play) {
