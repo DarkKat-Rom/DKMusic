@@ -18,15 +18,18 @@
 
 package net.darkkatrom.dkmusic.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.fragments.SongListFragment;
+import net.darkkatrom.dkmusic.utils.NotificationUtil;
 
 public final class MainActivity extends AppCompatActivity {
     private static final String FRAGMENT_TAG = "song_list_fragment";
+    public static final String KEY_ACTION_PLAY_PAUSE = "action_play_pause";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +38,19 @@ public final class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        NotificationUtil notificationUtil = new NotificationUtil(this);
+        notificationUtil.setNotificationChannels();
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_content, new SongListFragment(), FRAGMENT_TAG)
                     .commit();
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        setIntent(intent);
+        super.onNewIntent(intent);
     }
 }

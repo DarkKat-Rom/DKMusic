@@ -49,13 +49,17 @@ import com.bumptech.glide.request.FutureTarget;
 
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.GlideApp;
+import net.darkkatrom.dkmusic.activities.MainActivity;
 import net.darkkatrom.dkmusic.activities.SettingsActivity;
 import net.darkkatrom.dkmusic.adapters.PlayerAdapter;
 import net.darkkatrom.dkmusic.adapters.SongAdapter;
 import net.darkkatrom.dkmusic.holders.MediaPlayerHolder;
+import net.darkkatrom.dkmusic.holders.SongInfoHolder;
 import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
 import net.darkkatrom.dkmusic.models.Song;
+import net.darkkatrom.dkmusic.utils.BitmapPaletteUtil;
 import net.darkkatrom.dkmusic.utils.Config;
+import net.darkkatrom.dkmusic.utils.NotificationUtil;
 import net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior;
 import net.darkkatrom.dkmusic.widgets.VisualizerView;
 
@@ -88,6 +92,9 @@ public final class SongListFragment extends Fragment implements
 
     private LockableBottomSheetBehavior mBottomSheetBehavior;
     private PlayerAdapter mPlayerAdapter;
+    private SongInfoHolder mCurrentSongInfo;
+    private NotificationUtil mNotificationUtil;
+
 
     private boolean mCanReadExternalStorage = false;
     private boolean mUserIsSeeking = false;
@@ -95,7 +102,6 @@ public final class SongListFragment extends Fragment implements
     private boolean mShowVisualizer;
     private int mDefaultVisualizerColor = 0;
     private int mVisualizerColor = 0;
-
     private List<Song> mSongs;
 
     @Override
@@ -107,6 +113,8 @@ public final class SongListFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
+        mNotificationUtil = new NotificationUtil(getActivity());
+
         mCanReadExternalStorage = getActivity().checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
         mDefaultVisualizerColor = getActivity().getColor(R.color.visualizer_fill_color);
@@ -121,6 +129,35 @@ public final class SongListFragment extends Fragment implements
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        if (mCurrentSongInfo.getSong() != null) {
+            if (mCurrentSongInfo.getIsMediaPlayerReleased()) {
+                mPlayerAdapter.setDataSource(mCurrentSongInfo.getSong().getData());
+                if (mCurrentSongInfo.getPosition() > 0) {
+                    mPlayerAdapter.seekTo(mCurrentSongInfo.getPosition());
+                }
+                if (mCurrentSongInfo.getIsPlaying()) {
+                    mPlayerAdapter.play();
+                } else {
+                    if (mCurrentSongInfo.getPosition() > 0) {
+                        mSeekbarAudio.setProgress(mCurrentSongInfo.getPosition(), true);
+                        updateTimes(mCurrentSongInfo.getPosition());
+                    }
+                }
+                Bundle extras = getActivity().getIntent().getExtras();
+                if (extras != null) {
+                    extras.putBoolean(MainActivity.KEY_ACTION_PLAY_PAUSE, mCurrentSongInfo.getIsPlaying());
+                    Intent intent = getActivity().getIntent();
+                    intent.putExtras(extras);
+                    getActivity().setIntent(intent);
+                }
+            }
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -130,6 +167,15 @@ public final class SongListFragment extends Fragment implements
             checkPermission();
         }
         updateVisualizer();
+
+        Bundle extras = getActivity().getIntent().getExtras();
+        if (extras != null) {
+            if (extras.getBoolean(MainActivity.KEY_ACTION_PLAY_PAUSE)) {
+                play();
+            } else {
+                pause();
+            }
+        }
     }
 
     @Override
@@ -138,9 +184,12 @@ public final class SongListFragment extends Fragment implements
 //        if (getActivity().isChangingConfigurations() && mPlayerAdapter.isPlaying()) {
 //            log("onStop: don't release MediaPlayer as screen is rotating & playing");
 //        } else {
+            mCurrentSongInfo.setIsMediaPlayerReleased(true);
+            mCurrentSongInfo.setPosition(mPlayerAdapter.getCurrentPosition());
             mPlayerAdapter.release();
             log("onStop: release MediaPlayer");
 //        }
+        NotificationUtil.removeNotification(getActivity());
     }
 
     @Override
@@ -194,6 +243,8 @@ public final class SongListFragment extends Fragment implements
         mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
                 mRoot.findViewById(R.id.bottom_sheet));
 
+        mCurrentSongInfo = new SongInfoHolder();
+
         checkPermission();
 
         mVisualizerView.initialize(getActivity());
@@ -209,19 +260,9 @@ public final class SongListFragment extends Fragment implements
                     @Override
                     public void onClick(View view) {
                         if (mPlayerAdapter.isPlaying()) {
-                            mPlayerAdapter.pause();
-                            mPlayPauseButtonBig.setImageResource(
-                                    R.drawable.ic_action_play_circle_outline);
-                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_play);
-                            mVisualizerView.setPlaying(false);
+                            pause();
                         } else {
-                            mPlayerAdapter.play();
-                            mPlayPauseButtonBig.setImageResource(
-                                    R.drawable.ic_action_pause_circle_outline);
-                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_pause);
-                            if (mShowVisualizer) {
-                                mVisualizerView.setPlaying(true);
-                            }
+                            play();
                         }
                     }
                 });
@@ -232,19 +273,9 @@ public final class SongListFragment extends Fragment implements
                     @Override
                     public void onClick(View view) {
                         if (mPlayerAdapter.isPlaying()) {
-                            mPlayerAdapter.pause();
-                            mPlayPauseButtonBig.setImageResource(
-                                    R.drawable.ic_action_play_circle_outline);
-                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_play);
-                            mVisualizerView.setPlaying(false);
+                            pause();
                         } else {
-                            mPlayerAdapter.play();
-                            mPlayPauseButtonBig.setImageResource(
-                                    R.drawable.ic_action_pause_circle_outline);
-                            mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_pause);
-                            if (mShowVisualizer) {
-                                mVisualizerView.setPlaying(true);
-                            }
+                            play();
                         }
                     }
                 });
@@ -319,25 +350,17 @@ public final class SongListFragment extends Fragment implements
 
                 try {
                     Bitmap bitmap = futureTarget.get();
-                    Palette p = Palette.from(bitmap).generate();
-                    mVisualizerColor = p.getDarkVibrantColor(mDefaultVisualizerColor);
+                    BitmapPaletteUtil colors = new BitmapPaletteUtil(bitmap);
+                    mVisualizerColor = colors.getContrastingColor();
+                    mNotificationUtil.sendNotification(song.getTitle(), song.getArtist(), bitmap, true);
+                    colors = null;
                 } catch (ExecutionException | InterruptedException e) {
                     mVisualizerColor = mDefaultVisualizerColor;
                 }
                 mVisualizerView.setColor(mVisualizerColor);
                 futureTarget.cancel(false);
-           }
+            }
         });
-    }
-
-    private void removeMediaMetadata() {
-        mAlbumArtBig.setImageResource(R.drawable.default_artwork);
-        mAlbumArtSmall.setImageResource(R.drawable.default_artwork);
-
-        String defaultSongTitle = getString(R.string.default_song_title);
-        String defaultArtistTitle = getString(R.string.default_artist_title);
-        mTitle.setText(defaultSongTitle + " -");
-        mArtist.setText(defaultArtistTitle + " -");
     }
 
     private void updateTimes(final int position) {
@@ -397,12 +420,22 @@ public final class SongListFragment extends Fragment implements
 
     @Override
     public void onSongClicked(Song song, int position) {
+        boolean playNewSong = false;
+        if (mPlayerAdapter.isPlaying()) {
+            pause();
+            playNewSong = true;
+        }
         applyMediaMetadata(song);
         mSeekbarAudio.setEnabled(true);
         mPlayPauseButtonSmall.setEnabled(true);
         updateTimes(0);
         mBottomSheetBehavior.setLocked(false);
         mPlayerAdapter.setDataSource(song.getData());
+        mCurrentSongInfo.setSong(song);
+        mCurrentSongInfo.setIsMediaPlayerReleased(false);
+        if (playNewSong) {
+            play();
+        }
     }
 
     private void checkPermission() {
@@ -428,6 +461,30 @@ public final class SongListFragment extends Fragment implements
             textColor = getActivity().getColor(tv.resourceId);
         }
         return textColor;
+    }
+
+    private void play() {
+        mPlayerAdapter.play();
+        mPlayPauseButtonBig.setImageResource(
+                R.drawable.ic_action_pause_circle_outline);
+        mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_pause);
+        if (mShowVisualizer) {
+            mVisualizerView.setPlaying(true);
+        }
+        mNotificationUtil.sendNotification(null, null, null, false);
+        mCurrentSongInfo.setIsPlaying(true);
+    }
+
+    private void pause() {
+        mPlayerAdapter.pause();
+        mPlayPauseButtonBig.setImageResource(
+                R.drawable.ic_action_play_circle_outline);
+        mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_play);
+        if (mShowVisualizer) {
+            mVisualizerView.setPlaying(false);
+        }
+        mNotificationUtil.sendNotification(null, null, null, true);
+        mCurrentSongInfo.setIsPlaying(false);
     }
 
     private void log(String message) {

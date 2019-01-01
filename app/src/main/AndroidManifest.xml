@@ -14,7 +14,8 @@
         android:theme="@style/AppThemeDarkKat">
 
         <activity
-            android:name=".activities.MainActivity" />
+            android:name=".activities.MainActivity"
+            android:launchMode="singleTop" />
 
         <activity
             android:name=".activities.SettingsActivity"

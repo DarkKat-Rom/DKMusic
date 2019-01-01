@@ -37,4 +37,6 @@ public interface PlayerAdapter {
     public void initializeProgressCallback();
 
     public void seekTo(int position);
+
+    public int getCurrentPosition();
 }

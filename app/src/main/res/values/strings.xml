@@ -22,6 +22,9 @@
     <string name="dlg_cancel">Cancel</string>
     <string name="dlg_ok">OK</string>
 
+    <string name="music_playback_notification_chanel_title">Music playback</string>
+    <string name="music_playback_notification_chanel_description">Category used for music playback notifications</string>
+
     <string name="loading_media_title">Loading media ...</string>
     <string name="loading_media_missing_permission_title">Failed to load media, no permission to read media</string>
 

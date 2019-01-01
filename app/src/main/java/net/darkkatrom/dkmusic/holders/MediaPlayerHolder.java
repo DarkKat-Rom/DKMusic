@@ -152,6 +152,15 @@ public final class MediaPlayerHolder implements PlayerAdapter {
         }
     }
 
+    @Override
+    public int getCurrentPosition() {
+        int position = 0;
+        if (mMediaPlayer != null) {
+            position = mMediaPlayer.getCurrentPosition();
+        }
+        return position;
+    }
+
     /**
      * Syncs the mMediaPlayer position with mPlaybackProgressCallback via recurring task.
      */
