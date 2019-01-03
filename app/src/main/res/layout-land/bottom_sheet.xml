@@ -155,15 +155,41 @@
                 android:textSize="12sp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
-            <ImageView
-                android:id="@+id/button_play_pause_big"
+            <FrameLayout
                 android:layout_width="96dp"
                 android:layout_height="96dp"
-                android:layout_gravity="center_horizontal"
-                android:src="@drawable/ic_action_play_circle_outline"
-                android:scaleType="centerCrop"
-                android:background="@drawable/ripple_drawable_borderless_48dp" />
+                android:layout_gravity="center_horizontal">
 
+                <ImageView
+                    android:id="@+id/button_play_pause_big"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_gravity="center_horizontal"
+                    android:padding="20dp"
+                    android:src="@drawable/ic_action_play"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/ripple_drawable_borderless_48dp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBarBackground"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:indeterminate="false"
+                    android:max="1000"
+                    android:progress="1000"
+                    android:progressDrawable="@drawable/circular_drawable_background"
+                    style="?android:attr/progressBarStyleHorizontal" />
+
+                <ProgressBar
+                    android:id="@+id/circularProgressBar"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:indeterminate="false"
+                    android:max="1000"
+                    android:progressDrawable="@drawable/circular_drawable"
+                    style="?android:attr/progressBarStyleHorizontal" />
+
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

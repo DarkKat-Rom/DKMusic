@@ -90,6 +90,7 @@ public final class SongListFragment extends Fragment implements
     private TextView mTitle;
     private TextView mArtist;
     private ImageView mPlayPauseButtonBig;
+    private ProgressBar mPlayPauseButtonBigProgress;
     private List<View> mBottomSheetChilds;
 
     private LockableBottomSheetBehavior mBottomSheetBehavior;
@@ -149,6 +150,7 @@ public final class SongListFragment extends Fragment implements
                 } else {
                     if (mCurrentSongInfo.getPosition() > 0) {
                         mSeekbarAudio.setProgress(mCurrentSongInfo.getPosition(), true);
+                        mPlayPauseButtonBigProgress.setProgress(mCurrentSongInfo.getPosition(), true);
                         updateTimes(mCurrentSongInfo.getPosition());
                     }
                 }
@@ -247,6 +249,7 @@ public final class SongListFragment extends Fragment implements
         mTitle = (TextView) mRoot.findViewById(R.id.song_title);
         mArtist = (TextView) mRoot.findViewById(R.id.artist_title);
         mPlayPauseButtonBig = (ImageView) mRoot.findViewById(R.id.button_play_pause_big);
+        mPlayPauseButtonBigProgress = (ProgressBar) mRoot.findViewById(R.id.circularProgressBar);
         mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
                 mRoot.findViewById(R.id.bottom_sheet));
 
@@ -259,6 +262,8 @@ public final class SongListFragment extends Fragment implements
         mCurrentSongInfo = new SongInfoHolder();
 
         checkPermission();
+
+        mPlayPauseButtonBigProgress.setRotation(-90);
 
         mVisualizerView.initialize(getActivity());
         mShowVisualizer = Config.getShowVisualizer(getActivity());
@@ -479,7 +484,7 @@ public final class SongListFragment extends Fragment implements
     private void play() {
         mPlayerAdapter.play();
         mPlayPauseButtonBig.setImageResource(
-                R.drawable.ic_action_pause_circle_outline);
+                R.drawable.ic_action_pause);
         mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_pause);
         if (mShowVisualizer) {
             mVisualizerView.setPlaying(true);
@@ -491,7 +496,7 @@ public final class SongListFragment extends Fragment implements
     private void pause() {
         mPlayerAdapter.pause();
         mPlayPauseButtonBig.setImageResource(
-                R.drawable.ic_action_play_circle_outline);
+                R.drawable.ic_action_play);
         mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_play);
         if (mShowVisualizer) {
             mVisualizerView.setPlaying(false);
@@ -621,6 +626,7 @@ public final class SongListFragment extends Fragment implements
         @Override
         public void onDurationChanged(int duration) {
             mSeekbarAudio.setMax(duration);
+            mPlayPauseButtonBigProgress.setMax(duration);
             mDuration = duration;
             updateTimes(0);
             log(String.format("setPlaybackDuration: setMax(%d)", duration));
@@ -630,6 +636,7 @@ public final class SongListFragment extends Fragment implements
         public void onPositionChanged(int position) {
             if (!mUserIsSeeking) {
                 mSeekbarAudio.setProgress(position, true);
+                mPlayPauseButtonBigProgress.setProgress(position, true);
                 log(String.format("setPlaybackPosition: setProgress(%d)", position));
                 updateTimes(position);
             }
