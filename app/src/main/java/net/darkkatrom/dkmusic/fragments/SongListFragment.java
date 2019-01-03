@@ -78,6 +78,7 @@ public final class SongListFragment extends Fragment implements
     private TextView mLoadingMediaText;
     private ProgressBar mLoadingMediaProgress;
     private RecyclerView mList;
+    private ViewGroup mBottomSheet;
     private View mBottomSheetBar;
     private ImageView mAlbumArtSmall;
     private ImageView mPlayPauseButtonSmall;
@@ -89,6 +90,7 @@ public final class SongListFragment extends Fragment implements
     private TextView mTitle;
     private TextView mArtist;
     private ImageView mPlayPauseButtonBig;
+    private List<View> mBottomSheetChilds;
 
     private LockableBottomSheetBehavior mBottomSheetBehavior;
     private PlayerAdapter mPlayerAdapter;
@@ -104,10 +106,14 @@ public final class SongListFragment extends Fragment implements
     private int mVisualizerColor = 0;
     private List<Song> mSongs;
 
+    private float mBottomSheetBarHeight = 0f;
+    private int mBottomSheetChildsCount = 0;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        mBottomSheetBarHeight = getActivity().getResources().getDimension(R.dimen.bottom_sheet_bar_height);
     }
 
     @Override
@@ -229,6 +235,7 @@ public final class SongListFragment extends Fragment implements
         mLoadingMediaText = (TextView) mRoot.findViewById(R.id.loading_media_text);
         mLoadingMediaProgress = (ProgressBar) mRoot.findViewById(R.id.loading_media_progress);
         mList = (RecyclerView) mRoot.findViewById(R.id.list);
+        mBottomSheet = (ViewGroup) mRoot.findViewById(R.id.bottom_sheet);
         mBottomSheetBar = mRoot.findViewById(R.id.bottom_sheet_bar);
         mAlbumArtSmall = (ImageView) mRoot.findViewById(R.id.album_art_small);
         mPlayPauseButtonSmall = (ImageView) mRoot.findViewById(R.id.button_play_pause_small);
@@ -242,6 +249,12 @@ public final class SongListFragment extends Fragment implements
         mPlayPauseButtonBig = (ImageView) mRoot.findViewById(R.id.button_play_pause_big);
         mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(
                 mRoot.findViewById(R.id.bottom_sheet));
+
+        mBottomSheetChilds = new ArrayList<View>();
+        mBottomSheetChildsCount = mBottomSheet.getChildCount();
+        for (int i = 0; i < mBottomSheetChildsCount; i++) {
+            mBottomSheetChilds.add(mBottomSheet.getChildAt(i));
+        }
 
         mCurrentSongInfo = new SongInfoHolder();
 
@@ -514,7 +527,17 @@ public final class SongListFragment extends Fragment implements
         @Override
         public void onSlide(View bottomSheet, float slideOffset) {
             if (slideOffset >= 0) {
-                mBottomSheetBar.setAlpha(1f - slideOffset);
+                if (slideOffset < 0.5f) {
+                    mBottomSheetBar.setAlpha(1f - slideOffset * 2);
+                } else {
+                    float translationY = mBottomSheetBarHeight * (slideOffset - 0.5f) * 2;
+                    if (translationY != 0f) {
+                        translationY *= -1;
+                    }
+                    for (int i = 0; i < mBottomSheetChildsCount; i++) {
+                        mBottomSheetChilds.get(i).setTranslationY(translationY);
+                    }
+                }
                 if (slideOffset > 0) {
                     if (mPlayPauseButtonSmall.isEnabled()) {
                         mPlayPauseButtonSmall.setEnabled(false);

@@ -16,7 +16,7 @@
 <resources>
 
     <dimen name="toolbar_elevation">4dp</dimen>
-
+    <dimen name="bottom_sheet_bar_height">64dp</dimen>
     <dimen name="album_art_small_size">48dp</dimen>
-    <dimen name="album_art_big_size">250dp</dimen>
+    <dimen name="album_art_big_size">300dp</dimen>
 </resources>
