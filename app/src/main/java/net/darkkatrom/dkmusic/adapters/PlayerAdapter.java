@@ -39,4 +39,6 @@ public interface PlayerAdapter {
     public void seekTo(int position);
 
     public int getCurrentPosition();
+
+    public int getDuration();
 }

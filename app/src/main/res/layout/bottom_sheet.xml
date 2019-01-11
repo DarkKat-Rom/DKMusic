@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2017 Google Inc. All rights reserved.
 
-     Copyright (C) Copyright (C) 2018 DarkKat
+     Copyright (C) 2018 DarkKat
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -21,59 +21,42 @@
     android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
     android:orientation="vertical"
-    android:clickable="true"
-    app:behavior_peekHeight="64dp"
+    app:behavior_peekHeight="81dp"
     app:layout_behavior="net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior">
 
-    <LinearLayout
-        android:id="@+id/bottom_sheet_bar"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:paddingStart="8dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp"
-        android:gravity="center_vertical"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:background="?attr/colorBackgroundFloating">
 
         <ImageView
-            android:id="@+id/album_art_small"
-            android:layout_width="@dimen/album_art_small_size"
-            android:layout_height="@dimen/album_art_small_size"
-            android:src="@drawable/default_artwork"
-            android:scaleType="centerInside" />
+            android:id="@+id/bottom_sheet_drag_handle"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/ic_drag_handle"
+            android:scaleType="centerInside"
+            android:alpha="0.3" />
 
-        <Space
-            android:layout_width="0dp"
+        <View
+            android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_weight="1" />
+            android:layout_marginTop="24dp"
+            android:background="?attr/colorControlHighlight" />
 
-        <ImageView
-            android:id="@+id/button_play_pause_small"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="45dp"
-            android:padding="6dp"
-            android:src="@drawable/ic_action_play"
-            android:scaleType="centerCrop"
-            android:background="@drawable/ripple_drawable_borderless_24dp" />
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-    </LinearLayout>
+    </FrameLayout>
 
     <FrameLayout
+        android:id="@+id/album_art_big_frame"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:visibility="invisible"
         android:layout_gravity="center_horizontal">
 
         <ImageView
@@ -154,39 +137,41 @@
         android:textSize="12sp"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
-    <FrameLayout
+    <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
+        android:id="@+id/button_play_pause_big"
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_gravity="center_horizontal">
 
-        <ImageView
-            android:id="@+id/button_play_pause_big"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:layout_gravity="center_horizontal"
-            android:padding="20dp"
-            android:src="@drawable/ic_action_play"
+        <net.darkkatrom.dkmusic.widgets.PlayPauseButton
+            android:id="@+id/action_button_play"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:focusable="true"
             android:scaleType="centerCrop"
-            android:background="@drawable/ripple_drawable_borderless_48dp" />
+            android:src="@drawable/ic_action_play" />
 
         <ProgressBar
             android:id="@+id/progressBarBackground"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false"
             android:indeterminate="false"
             android:max="1000"
             android:progress="1000"
-            android:progressDrawable="@drawable/circular_drawable_background"
-            style="?android:attr/progressBarStyleHorizontal" />
+            android:progressDrawable="@drawable/circular_drawable_background" />
 
         <ProgressBar
             android:id="@+id/circularProgressBar"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false"
             android:indeterminate="false"
             android:max="1000"
-            android:progressDrawable="@drawable/circular_drawable"
-            style="?android:attr/progressBarStyleHorizontal" />
+            android:progressDrawable="@drawable/circular_drawable" />
 
-    </FrameLayout>
+    </net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton>
 </LinearLayout>
