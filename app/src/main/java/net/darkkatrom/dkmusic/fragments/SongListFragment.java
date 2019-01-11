@@ -43,7 +43,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.request.FutureTarget;
@@ -86,7 +85,6 @@ public final class SongListFragment extends Fragment implements
     private ImageView mPlayPauseButtonSmall;
     private ImageView mAlbumArtBig;
     private VisualizerView mVisualizerView;
-    private SeekBar mSeekbarAudio;
     private TextView mSongPlayTime;
     private TextView mSongTimeRemaining;
     private TextView mTitle;
@@ -123,7 +121,6 @@ public final class SongListFragment extends Fragment implements
 
         mRoot = inflater.inflate(R.layout.fragment_song_list, container, false);
         initializeUI();
-        initializeSeekbar();
         initializePlaybackController();
 
         log("onCreateView: finished");
@@ -144,7 +141,6 @@ public final class SongListFragment extends Fragment implements
                     mPlayerAdapter.play();
                 } else {
                     if (mCurrentSongInfo.getPosition() > 0) {
-                        mSeekbarAudio.setProgress(mCurrentSongInfo.getPosition(), true);
                         mPlayPauseProgressButton.resume();
                         updateTimes(mCurrentSongInfo.getPosition());
                     }
@@ -238,7 +234,6 @@ public final class SongListFragment extends Fragment implements
         mPlayPauseButtonSmall = (ImageView) mRoot.findViewById(R.id.button_play_pause_small);
         mAlbumArtBig = (ImageView) mRoot.findViewById(R.id.album_art_big);
         mVisualizerView = (VisualizerView) mRoot.findViewById(R.id.visualizerView);
-        mSeekbarAudio = (SeekBar) mRoot.findViewById(R.id.seekbar_audio);
         mSongPlayTime = (TextView) mRoot.findViewById(R.id.song_play_time);
         mSongTimeRemaining = (TextView) mRoot.findViewById(R.id.song_time_remaining);
         mTitle = (TextView) mRoot.findViewById(R.id.song_title);
@@ -255,8 +250,6 @@ public final class SongListFragment extends Fragment implements
 
         mBottomSheetBehavior.setBottomSheetCallback(new Callback());
         mBottomSheetBehavior.setLocked(true);
-
-        mSeekbarAudio.setEnabled(false);
 
         mPlayPauseButtonSmall.setEnabled(false);
         mPlayPauseButtonSmall.setOnClickListener(
@@ -280,32 +273,6 @@ public final class SongListFragment extends Fragment implements
         log("initializePlaybackController: MediaPlayerHolder progress callback set");
         mPlayPauseProgressButton.setPlayerAdapter(mPlayerAdapter);
         mPlayPauseProgressButton.getPlayPauseButton().setFragment(this);
-    }
-
-    private void initializeSeekbar() {
-        mSeekbarAudio.setOnSeekBarChangeListener(
-                new SeekBar.OnSeekBarChangeListener() {
-                    int userSelectedPosition = 0;
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-                        mUserIsSeeking = true;
-                    }
-
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        if (fromUser) {
-                            userSelectedPosition = progress;
-                            updateTimes(userSelectedPosition);
-                        }
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-                        mUserIsSeeking = false;
-                        mPlayerAdapter.seekTo(userSelectedPosition);
-                    }
-                });
     }
 
     private void setupList() {
@@ -389,8 +356,8 @@ public final class SongListFragment extends Fragment implements
 
                 mSongPlayTime.setTextColor(textColor);
                 mSongTimeRemaining.setTextColor(textColor);
-                mSongPlayTime.setText(mSeekbarAudio.isEnabled() ? playTime : "0:00");
-                mSongTimeRemaining.setText(mSeekbarAudio.isEnabled() ? timeRemaining : "-0:00");
+                mSongPlayTime.setText(playTime);
+                mSongTimeRemaining.setText(timeRemaining);
             }
         });
     }
@@ -420,7 +387,6 @@ public final class SongListFragment extends Fragment implements
         }
         mRoot.findViewById(R.id.bottom_sheet_drag_handle).setAlpha(1);
         applyMediaMetadata(song);
-        mSeekbarAudio.setEnabled(true);
         mPlayPauseButtonSmall.setEnabled(true);
         updateTimes(0);
         mBottomSheetBehavior.setLocked(false);
@@ -610,7 +576,6 @@ public final class SongListFragment extends Fragment implements
 
         @Override
         public void onDurationChanged(int duration) {
-            mSeekbarAudio.setMax(duration);
             mPlayPauseProgressButton.updateState();
             mDuration = duration;
             updateTimes(0);
@@ -620,7 +585,6 @@ public final class SongListFragment extends Fragment implements
         @Override
         public void onPositionChanged(int position) {
             if (!mUserIsSeeking) {
-                mSeekbarAudio.setProgress(position, true);
                 log(String.format("setPlaybackPosition: setProgress(%d)", position));
                 updateTimes(position);
             }
@@ -636,7 +600,6 @@ public final class SongListFragment extends Fragment implements
         public void onPlaybackCompleted() {
             mPlayerAdapter.pause();
             updateTimes(0);
-            mSeekbarAudio.setProgress(0, true);
             mPlayerAdapter.seekTo(0);
             mPlayPauseProgressButton.onPlaybackCompleted();
             mPlayPauseButtonSmall.setImageResource(R.drawable.ic_action_play);

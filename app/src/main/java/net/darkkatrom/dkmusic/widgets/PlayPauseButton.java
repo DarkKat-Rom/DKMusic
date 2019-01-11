@@ -58,10 +58,8 @@ public class PlayPauseButton extends ImageButton implements OnClickListener {
     public void onClick(final View v) {
         if (mPlayerAdapter != null) {
             if (mPlayerAdapter.isPlaying()) {
-//                mPlayerAdapter.pause();
                 mFragment.pause();
             } else {
-//                mPlayerAdapter.play();
                 mFragment.play();
             }
         }
