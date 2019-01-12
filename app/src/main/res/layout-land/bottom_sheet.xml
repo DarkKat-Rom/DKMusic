@@ -22,7 +22,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    app:behavior_peekHeight="81dp"
+    app:behavior_peekHeight="89dp"
     app:layout_behavior="net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior">
 
     <FrameLayout
@@ -51,15 +51,17 @@
     <LinearLayout
         android:id="@+id/album_art_big_frame"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/album_art_big_size"
+        android:layout_height="match_parent"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
         android:visibility="invisible">
 
         <FrameLayout
             android:layout_width="@dimen/album_art_big_size"
-            android:layout_height="@dimen/album_art_big_size">
+            android:layout_height="@dimen/album_art_big_size"
+            android:layout_gravity="center_vertical">
 
             <ImageView
                 android:id="@+id/album_art_big"
@@ -82,6 +84,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:orientation="vertical">
 
             <TextView
