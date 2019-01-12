@@ -606,7 +606,9 @@ public final class SongListFragment extends Fragment implements
         @Override
         public void onPositionChanged(int position) {
             log(String.format("setPlaybackPosition: setProgress(%d)", position));
-            updateTimes(position);
+            if (!mUserIsDragging) {
+                updateTimes(position);
+            }
         }
 
         @Override
