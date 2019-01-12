@@ -92,6 +92,7 @@ public final class SongListFragment extends Fragment implements
     private PlayPauseProgressButton mPlayPauseProgressButtonBig;
 
     private LockableBottomSheetBehavior mBottomSheetBehavior;
+    private boolean mBottomSheetExpanded = false;
     private PlayerAdapter mPlayerAdapter;
     private SongInfoHolder mCurrentSongInfo;
     private NotificationUtil mNotificationUtil;
@@ -166,7 +167,6 @@ public final class SongListFragment extends Fragment implements
                 == PackageManager.PERMISSION_GRANTED)) {
             checkPermission();
         }
-        updateVisualizer();
 
         Bundle extras = getActivity().getIntent().getExtras();
         if (extras != null) {
@@ -176,6 +176,7 @@ public final class SongListFragment extends Fragment implements
                 pause();
             }
         }
+        updateVisualizer();
     }
 
     @Override
@@ -375,12 +376,8 @@ public final class SongListFragment extends Fragment implements
         boolean show = Config.getShowVisualizer(getActivity());
         if (mShowVisualizer != show) {
             mShowVisualizer = show;
-            if (mPlayerAdapter.isPlaying()) {
-                if (mShowVisualizer) {
-                    mVisualizerView.setPlaying(true);
-                } else {
-                    mVisualizerView.setPlaying(false);
-                }
+            if (mShowVisualizer && mBottomSheetExpanded && mPlayerAdapter.isPlaying()) {
+                mVisualizerView.setPlaying(true);
             } else {
                 mVisualizerView.setPlaying(false);
             }
@@ -438,7 +435,7 @@ public final class SongListFragment extends Fragment implements
         mPlayerAdapter.play();
         mPlayPauseProgressButtonBig.resume();
         mPlayPauseProgressButtonSmall.resume();
-        if (mShowVisualizer) {
+        if (mShowVisualizer && mBottomSheetExpanded) {
             mVisualizerView.setPlaying(true);
         }
         mNotificationUtil.sendNotification(null, null, null, false);
@@ -449,9 +446,7 @@ public final class SongListFragment extends Fragment implements
         mPlayerAdapter.pause();
         mPlayPauseProgressButtonBig.pause();
         mPlayPauseProgressButtonSmall.pause();
-        if (mShowVisualizer) {
-            mVisualizerView.setPlaying(false);
-        }
+        mVisualizerView.setPlaying(false);
         mNotificationUtil.sendNotification(null, null, null, true);
         mCurrentSongInfo.setIsPlaying(false);
     }
@@ -482,8 +477,10 @@ public final class SongListFragment extends Fragment implements
                 case BottomSheetBehavior.STATE_HIDDEN:
                     break;
                 case BottomSheetBehavior.STATE_EXPANDED:
+                    mBottomSheetExpanded = true;
                     break;
                 case BottomSheetBehavior.STATE_COLLAPSED:
+                    mBottomSheetExpanded = false;
                     break;
                 case BottomSheetBehavior.STATE_DRAGGING:
                     break;
@@ -516,6 +513,13 @@ public final class SongListFragment extends Fragment implements
                     if (mPlayPauseProgressButtonBig.isEnabled()) {
                         mPlayPauseProgressButtonBig.setEnabled(false);
                     }
+                }
+                if (slideOffset == 1) {
+                    if (mShowVisualizer && mPlayerAdapter.isPlaying()) {
+                        mVisualizerView.setPlaying(true);
+                    }
+                } else {
+                    mVisualizerView.setPlaying(false);
                 }
             }
         }
@@ -618,9 +622,7 @@ public final class SongListFragment extends Fragment implements
             mPlayerAdapter.seekTo(0);
             mPlayPauseProgressButtonBig.onPlaybackCompleted();
             mPlayPauseProgressButtonSmall.onPlaybackCompleted();
-            if (mShowVisualizer) {
-                mVisualizerView.setPlaying(false);
-            }
+            mVisualizerView.setPlaying(false);
             mNotificationUtil.sendNotification(null, null, null, true);
             mCurrentSongInfo.setPosition(0);
             mCurrentSongInfo.setIsPlaying(false);
