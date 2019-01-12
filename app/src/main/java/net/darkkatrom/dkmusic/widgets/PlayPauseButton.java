@@ -56,7 +56,7 @@ public class PlayPauseButton extends ImageButton implements OnClickListener {
      */
     @Override
     public void onClick(final View v) {
-        if (mPlayerAdapter != null) {
+        if (mPlayerAdapter != null && mFragment != null) {
             if (mPlayerAdapter.isPlaying()) {
                 mFragment.pause();
             } else {
@@ -82,10 +82,12 @@ public class PlayPauseButton extends ImageButton implements OnClickListener {
      * Sets the correct drawable for playback.
      */
     public void updateState() {
-        if (mPlayerAdapter.isPlaying()) {
-            setImageResource(R.drawable.ic_action_pause);
-        } else {
-            setImageResource(R.drawable.ic_action_play);
+        if (mPlayerAdapter != null) {
+            if (mPlayerAdapter.isPlaying()) {
+                setImageResource(R.drawable.ic_action_pause);
+            } else {
+                setImageResource(R.drawable.ic_action_play);
+            }
         }
     }
 

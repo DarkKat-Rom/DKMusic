@@ -65,6 +65,14 @@ public class PlayPauseProgressButton extends FrameLayout {
 
     private boolean mPlayBackCompleted = false;
 
+    private OnDraggingListener mOnDraggingListener;
+
+    public interface OnDraggingListener {
+        public void onStartDragging();
+        public void onDragging(int progress);
+        public void onStopDragging();
+    }
+
     public PlayPauseProgressButton(Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -228,6 +236,9 @@ public class PlayPauseProgressButton extends FrameLayout {
         } else {
             if (isDragging()) {
                 progress = (int) (mDragPercentage * mProgressBar.getMax());
+                if (mOnDraggingListener != null) {
+                    mOnDraggingListener.onDragging((int) getDragProgressInMs());
+                }
             } else if (mCurrentSongDuration > 0) {
                 progress = (int) (mProgressBar.getMax() * mCurrentSongProgress / mCurrentSongDuration);
             }
@@ -311,6 +322,9 @@ public class PlayPauseProgressButton extends FrameLayout {
                 // if we weren't previously dragging, immediately kick off an update to reflect
                 // the change faster
                 if (!mDragging) {
+                    if (mOnDraggingListener != null) {
+                        mOnDraggingListener.onStartDragging();
+                    }
                     postUpdate();
                 }
 
@@ -330,6 +344,11 @@ public class PlayPauseProgressButton extends FrameLayout {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 // if we were dragging, seek to where we dragged to
+                if (mDragging) {
+                    if (mOnDraggingListener != null) {
+                        mOnDraggingListener.onStopDragging();
+                    }
+                }
                 if (mDragging && mPlayerAdapter != null) {
                     mPlayerAdapter.seekTo((int)(mDragPercentage * mCurrentSongDuration));
                 }
@@ -400,5 +419,9 @@ public class PlayPauseProgressButton extends FrameLayout {
     public void setPlayerAdapter(PlayerAdapter adapter) {
         mPlayerAdapter = adapter;
         mPlayPauseButton.setPlayerAdapter(mPlayerAdapter);
+    }
+
+    public void setOnDraggingListener(OnDraggingListener listener) {
+        mOnDraggingListener = listener;
     }
 }

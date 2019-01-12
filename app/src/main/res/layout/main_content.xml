@@ -73,16 +73,43 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <ImageView
+        <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
             android:id="@+id/button_play_pause_small"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginEnd="10dp"
-            android:padding="6dp"
-            android:src="@drawable/ic_action_play"
-            android:scaleType="centerCrop"
-            android:background="@drawable/ripple_drawable_borderless_24dp" />
+            android:layout_marginEnd="10dp">
+
+            <net.darkkatrom.dkmusic.widgets.PlayPauseButton
+                android:id="@+id/action_button_play"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:focusable="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_action_play" />
+
+            <ProgressBar
+                android:id="@+id/progressBarBackground"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="false"
+                android:indeterminate="false"
+                android:max="1000"
+                android:progress="1000"
+                android:progressDrawable="@drawable/circular_drawable_background" />
+
+            <ProgressBar
+                android:id="@+id/circularProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="false"
+                android:indeterminate="false"
+                android:max="1000"
+                android:progressDrawable="@drawable/circular_drawable" />
+
+        </net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton>
 
     </LinearLayout>
-
 </LinearLayout>
