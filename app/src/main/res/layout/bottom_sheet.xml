@@ -21,6 +21,7 @@
     android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:tag="portrait"
     android:orientation="vertical"
     app:behavior_peekHeight="89dp"
     app:layout_behavior="net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior">
@@ -48,12 +49,46 @@
 
     </FrameLayout>
 
+    <LinearLayout
+        android:id="@+id/bottom_sheet_song_info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="64dp"
+        android:layout_gravity="start"
+        android:paddingStart="@dimen/bottom_sheet_collapsed_song_info_padding_start"
+        android:paddingEnd="@dimen/bottom_sheet_collapsed_song_info_padding_end"
+        android:gravity="center_vertical|start"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/song_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical|start"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textSize="16sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+        <TextView
+            android:id="@+id/artist_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical|start"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textSize="12sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+    </LinearLayout>
+
     <FrameLayout
         android:id="@+id/album_art_big_frame"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:visibility="invisible"
+        android:visibility="gone"
         android:layout_gravity="center_horizontal">
 
         <ImageView
@@ -73,32 +108,11 @@
 
     </FrameLayout>
 
-    <TextView
-        android:id="@+id/song_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        android:layout_gravity="center_horizontal"
-        android:textSize="12sp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
-
-    <TextView
-        android:id="@+id/artist_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="24dp"
-        android:layout_gravity="center_horizontal"
-        android:textSize="12sp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:gravity="center">
 

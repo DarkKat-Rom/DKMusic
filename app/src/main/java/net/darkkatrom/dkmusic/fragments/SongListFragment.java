@@ -35,6 +35,7 @@ import android.support.v7.widget.RecyclerView;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +43,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -503,16 +505,18 @@ public final class SongListFragment extends Fragment implements
                     if (!mPlayPauseProgressButtonBig.isEnabled()) {
                         mPlayPauseProgressButtonBig.setEnabled(true);
                     }
+                    updateBottomSheetSongInfoLayout(false);
                 } else {
                     mBottomSheet.setClickable(false);
                     mBottomSheet.setBackground(null);
-                    mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.INVISIBLE);
+                    mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.GONE);
                     if (mPlayPauseProgressButtonSmall.isEnabled()) {
                         mPlayPauseProgressButtonSmall.setEnabled(true);
                     }
                     if (mPlayPauseProgressButtonBig.isEnabled()) {
                         mPlayPauseProgressButtonBig.setEnabled(false);
                     }
+                    updateBottomSheetSongInfoLayout(true);
                 }
                 if (slideOffset == 1) {
                     if (mShowVisualizer && mPlayerAdapter.isPlaying()) {
@@ -523,6 +527,31 @@ public final class SongListFragment extends Fragment implements
                 }
             }
         }
+    }
+
+    private void updateBottomSheetSongInfoLayout(boolean collapsed) {
+        View v = mRoot.findViewById(R.id.bottom_sheet_song_info_layout);
+        if (v == null) {
+            return;
+        }
+
+        int paddingStart = getActivity().getResources().getDimensionPixelOffset(collapsed
+            ? R.dimen.bottom_sheet_collapsed_song_info_padding_start
+            : R.dimen.bottom_sheet_expanded_song_info_padding_start);
+        int paddingEnd = getActivity().getResources().getDimensionPixelOffset(collapsed
+            ? R.dimen.bottom_sheet_collapsed_song_info_padding_end
+            : R.dimen.bottom_sheet_expanded_song_info_padding_end);
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) v.getLayoutParams();
+        params.gravity = collapsed ? Gravity.START : Gravity.CENTER_HORIZONTAL;
+        if (mBottomSheet.getTag().equals("landscape")) {
+            int marginTop = collapsed ? 0 : getActivity().getResources().getDimensionPixelOffset(
+                    R.dimen.bottom_sheet_expanded_song_info_margin_top);
+            params.topMargin = marginTop;
+        }
+
+        v.setPaddingRelative(paddingStart, v.getPaddingTop(),
+                paddingEnd, v.getPaddingBottom());
+        v.setLayoutParams(params);
     }
 
     public class LoadSongsTask extends AsyncTask<Void, Integer, String> {

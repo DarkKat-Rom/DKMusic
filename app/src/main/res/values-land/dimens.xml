@@ -16,4 +16,10 @@
 <resources>
 
     <dimen name="album_art_big_size">280dp</dimen>
+
+    <dimen name="bottom_sheet_collapsed_song_info_padding_start">56dp</dimen>
+    <dimen name="bottom_sheet_collapsed_song_info_padding_end">74dp</dimen>
+    <dimen name="bottom_sheet_expanded_song_info_padding_start">16dp</dimen>
+    <dimen name="bottom_sheet_expanded_song_info_padding_end">16dp</dimen>
+    <dimen name="bottom_sheet_expanded_song_info_margin_top">8dp</dimen>
 </resources>
