@@ -34,7 +34,6 @@ import android.support.v7.graphics.Palette;
 import android.support.v7.widget.RecyclerView;
 import android.transition.TransitionManager;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -62,6 +61,7 @@ import net.darkkatrom.dkmusic.models.Song;
 import net.darkkatrom.dkmusic.utils.BitmapPaletteUtil;
 import net.darkkatrom.dkmusic.utils.Config;
 import net.darkkatrom.dkmusic.utils.NotificationUtil;
+import net.darkkatrom.dkmusic.utils.ThemeUtil;
 import net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior;
 import net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton;
 import net.darkkatrom.dkmusic.widgets.VisualizerView;
@@ -354,17 +354,9 @@ public final class SongListFragment extends Fragment implements
                 secs %= 60;
                 String timeRemaining = "-" + mins + ":" + (secs < 10 ? "0" + secs : secs);
 
-                TypedValue tv = new TypedValue();
-                int textColor = 0;
                 int resId = mUserIsDragging
                         ? R.attr.colorAccent : android.R.attr.textColorTertiary;
-                getActivity().getTheme().resolveAttribute(resId, tv, true);
-                if (tv.type >= TypedValue.TYPE_FIRST_COLOR_INT
-                        && tv.type <= TypedValue.TYPE_LAST_COLOR_INT) {
-                    textColor = tv.data;
-                } else {
-                    textColor = getActivity().getColor(tv.resourceId);
-                }
+                int textColor = ThemeUtil.getColorFromThemeAttribute(getActivity(), resId);
 
                 mSongPlayTime.setTextColor(textColor);
                 mSongTimeRemaining.setTextColor(textColor);
@@ -419,18 +411,9 @@ public final class SongListFragment extends Fragment implements
     }
 
     private int getLoadingTextColor(boolean error) {
-        TypedValue tv = new TypedValue();
-        int textColor = 0;
         int resId = error
                 ? R.attr.colorError : android.R.attr.textColorPrimary;
-        getActivity().getTheme().resolveAttribute(resId, tv, true);
-        if (tv.type >= TypedValue.TYPE_FIRST_COLOR_INT
-                && tv.type <= TypedValue.TYPE_LAST_COLOR_INT) {
-            textColor = tv.data;
-        } else {
-            textColor = getActivity().getColor(tv.resourceId);
-        }
-        return textColor;
+        return ThemeUtil.getColorFromThemeAttribute(getActivity(), resId);
     }
 
     public void play() {
@@ -459,18 +442,6 @@ public final class SongListFragment extends Fragment implements
         }
     }
 
-    private int getColorFromThemeAttribute(int resId) {
-        TypedValue tv = new TypedValue();
-        int color = 0;
-        getActivity().getTheme().resolveAttribute(resId, tv, true);
-        if (tv.type >= TypedValue.TYPE_FIRST_COLOR_INT && tv.type <= TypedValue.TYPE_LAST_COLOR_INT) {
-            color = tv.data;
-        } else {
-            color = getActivity().getColor(tv.resourceId);
-        }
-        return color;
-    }
-
     public class Callback extends BottomSheetCallback {
 
         @Override
@@ -496,8 +467,8 @@ public final class SongListFragment extends Fragment implements
             if (slideOffset >= 0) {
                 if (slideOffset > 0) {
                     mBottomSheet.setClickable(true);
-                    int bgColor = getColorFromThemeAttribute(android.R.attr.colorBackground);
-                    mBottomSheet.setBackgroundColor(bgColor);
+                    mBottomSheet.setBackgroundColor(ThemeUtil.getColorFromThemeAttribute(
+                            getActivity(), android.R.attr.colorBackground));
                     mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.VISIBLE);
                     if (mPlayPauseProgressButtonSmall.isEnabled()) {
                         mPlayPauseProgressButtonSmall.setEnabled(false);
