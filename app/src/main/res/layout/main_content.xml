@@ -27,18 +27,18 @@
         android:id="@+id/loading_media_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="@dimen/loading_media_text_margin_start_end"
+        android:layout_marginEnd="@dimen/loading_media_text_margin_start_end"
         android:layout_gravity="center"
         android:text="@string/loading_media_title"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textSize="22sp" />
+        android:textSize="@dimen/loading_media_text_size" />
 
     <ProgressBar
         android:id="@+id/loading_media_progress"
-        android:layout_width="200dp"
+        android:layout_width="@dimen/loading_media_progress_bar_width"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/loading_media_progress_bar_margin_top"
         android:layout_gravity="center"
         style="@android:style/Widget.Material.ProgressBar.Horizontal" />
 
@@ -53,11 +53,11 @@
     <LinearLayout
         android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:paddingStart="8dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp"
+        android:layout_height="@dimen/bottom_bar_height"
+        android:paddingStart="@dimen/bottom_bar_padding_start"
+        android:paddingTop="@dimen/bottom_bar_padding_top_bottom"
+        android:paddingEnd="@dimen/bottom_bar_padding_end"
+        android:paddingBottom="@dimen/bottom_bar_padding_top_bottom"
         android:gravity="center_vertical"
         android:background="?attr/colorBackgroundFloating">
 
@@ -75,9 +75,9 @@
 
         <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
             android:id="@+id/button_play_pause_small"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="10dp">
+            android:layout_width="@dimen/album_art_small_size"
+            android:layout_height="@dimen/album_art_small_size"
+            android:layout_marginEnd="@dimen/button_play_pause_small_margin_end">
 
             <net.darkkatrom.dkmusic.widgets.PlayPauseButton
                 android:id="@+id/action_button_play"
@@ -110,6 +110,5 @@
                 android:progressDrawable="@drawable/circular_drawable" />
 
         </net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton>
-
     </LinearLayout>
 </LinearLayout>

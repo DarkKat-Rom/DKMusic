@@ -17,8 +17,8 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/list_item_root"
     android:layout_width="match_parent"
-    android:layout_height="64dp"
-    android:layout_marginTop="8dp"
+    android:layout_height="@dimen/list_item_height"
+    android:layout_marginTop="@dimen/list_item_margin_top"
     android:gravity="center_vertical"
     android:background="?android:attr/selectableItemBackground">
 
@@ -26,15 +26,15 @@
         android:id="@+id/list_item_album_art_small"
         android:layout_width="@dimen/album_art_small_size"
         android:layout_height="@dimen/album_art_small_size"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="@dimen/list_item_album_art_margin_start"
         android:src="@drawable/default_artwork"
         android:scaleType="centerInside" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="@dimen/list_item_song_info_margin_start_end"
+        android:layout_marginEnd="@dimen/list_item_song_info_margin_start_end"
         android:orientation="vertical">
 
         <TextView
@@ -42,16 +42,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:textSize="16sp"
+            android:textSize="@dimen/list_item_song_title_text_size"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <TextView
             android:id="@+id/list_item_artist_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/list_item_artist_title_margin_top"
             android:ellipsize="end"
-            android:textSize="12sp"
+            android:textSize="@dimen/list_item_artist_title_text_size"
             android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
     </LinearLayout>

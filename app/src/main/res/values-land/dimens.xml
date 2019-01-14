@@ -15,8 +15,12 @@
 -->
 <resources>
 
+    <!-- General -->
     <dimen name="album_art_big_size">280dp</dimen>
 
+    <!-- Bottom sheet -->
+    <dimen name="bottom_sheet_main_content_margin_start_end">16dp</dimen>
+    <dimen name="bottom_sheet_main_content_margin_top_bottom">8dp</dimen>
     <dimen name="bottom_sheet_collapsed_song_info_padding_start">56dp</dimen>
     <dimen name="bottom_sheet_collapsed_song_info_padding_end">74dp</dimen>
     <dimen name="bottom_sheet_expanded_song_info_padding_start">16dp</dimen>

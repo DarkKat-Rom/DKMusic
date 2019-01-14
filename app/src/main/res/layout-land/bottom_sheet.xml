@@ -23,7 +23,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:tag="landscape"
-    app:behavior_peekHeight="89dp"
+    app:behavior_peekHeight="@dimen/bottom_sheet_peek_height"
     app:layout_behavior="net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior">
 
     <FrameLayout
@@ -34,8 +34,8 @@
 
         <ImageView
             android:id="@+id/bottom_sheet_drag_handle"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/bottom_sheet_drag_handle_icon_size"
+            android:layout_height="@dimen/bottom_sheet_drag_handle_icon_size"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/ic_drag_handle"
             android:scaleType="centerInside"
@@ -44,7 +44,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="@dimen/bottom_sheet_drag_handle_icon_size"
             android:background="?attr/colorControlHighlight" />
 
     </FrameLayout>
@@ -52,16 +52,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp">
+        android:layout_marginStart="@dimen/bottom_sheet_main_content_margin_start_end"
+        android:layout_marginTop="@dimen/bottom_sheet_main_content_margin_top_bottom"
+        android:layout_marginEnd="@dimen/bottom_sheet_main_content_margin_start_end"
+        android:layout_marginBottom="@dimen/bottom_sheet_main_content_margin_top_bottom">
 
         <FrameLayout
             android:id="@+id/album_art_big_frame"
             android:layout_width="@dimen/album_art_big_size"
             android:layout_height="@dimen/album_art_big_size"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="@dimen/bottom_sheet_album_art_big_frame_margin"
             android:layout_gravity="center_vertical"
             android:visibility="gone">
 
@@ -91,7 +91,7 @@
             <LinearLayout
                 android:id="@+id/bottom_sheet_song_info_layout"
                 android:layout_width="wrap_content"
-                android:layout_height="64dp"
+                android:layout_height="@dimen/bottom_sheet_song_info_height"
                 android:layout_gravity="start"
                 android:paddingStart="@dimen/bottom_sheet_collapsed_song_info_padding_start"
                 android:paddingEnd="@dimen/bottom_sheet_collapsed_song_info_padding_end"
@@ -102,11 +102,11 @@
                     android:id="@+id/song_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
+                    android:layout_marginBottom="@dimen/bottom_sheet_song_title_margin_bottom"
                     android:layout_gravity="center_vertical|start"
                     android:singleLine="true"
                     android:ellipsize="end"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/bottom_sheet_song_title_text_size"
                     android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
                 <TextView
@@ -117,7 +117,7 @@
                     android:layout_gravity="center_vertical|start"
                     android:singleLine="true"
                     android:ellipsize="end"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/bottom_sheet_artist_title_text_size"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
             </LinearLayout>
@@ -125,7 +125,7 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/bottom_sheet_music_control_margin_top"
                 android:gravity="center">
 
                 <TextView
@@ -133,13 +133,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginEnd="32dp"
+                    android:layout_marginEnd="@dimen/bottom_sheet_song_playtime_margin_end"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
                 <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
                     android:id="@+id/button_play_pause_big"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
+                    android:layout_width="@dimen/bottom_sheet_button_play_pause_big_size"
+                    android:layout_height="@dimen/bottom_sheet_button_play_pause_big_size"
                     android:layout_gravity="center_horizontal">
 
                     <net.darkkatrom.dkmusic.widgets.PlayPauseButton
@@ -178,7 +178,7 @@
                     android:id="@+id/song_time_remaining"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
+                    android:layout_marginStart="@dimen/bottom_sheet_song_time_remaining_margin_start"
                     android:layout_gravity="center"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
