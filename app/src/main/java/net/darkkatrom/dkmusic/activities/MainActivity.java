@@ -31,12 +31,14 @@ public final class MainActivity extends AppCompatActivity {
     private static final String FRAGMENT_TAG = "song_list_fragment";
     public static final String KEY_ACTION_PLAY_PAUSE = "action_play_pause";
 
+    private Toolbar mToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
         NotificationUtil notificationUtil = new NotificationUtil(this);
         notificationUtil.setNotificationChannels();
@@ -52,5 +54,9 @@ public final class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         setIntent(intent);
         super.onNewIntent(intent);
+    }
+
+    public Toolbar getToolbar() {
+        return mToolbar;
     }
 }

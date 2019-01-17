@@ -17,6 +17,11 @@
 package net.darkkatrom.dkmusic.fragments;
 
 import android.Manifest.permission;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -32,6 +37,7 @@ import android.support.design.widget.BottomSheetBehavior.BottomSheetCallback;
 import android.support.v4.app.Fragment;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.Gravity;
@@ -41,6 +47,7 @@ import android.view.MenuItem;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -59,6 +66,7 @@ import net.darkkatrom.dkmusic.holders.SongInfoHolder;
 import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
 import net.darkkatrom.dkmusic.models.Song;
 import net.darkkatrom.dkmusic.utils.BitmapPaletteUtil;
+import net.darkkatrom.dkmusic.utils.ColorHelper;
 import net.darkkatrom.dkmusic.utils.Config;
 import net.darkkatrom.dkmusic.utils.NotificationUtil;
 import net.darkkatrom.dkmusic.utils.ThemeUtil;
@@ -107,9 +115,44 @@ public final class SongListFragment extends Fragment implements
     private int mVisualizerColor = 0;
     private List<Song> mSongs;
 
+    private boolean mUseColorsForExpandedState = true;
+    private boolean mUpdateColorsToExpand = true;
+    private boolean mUpdateColorsToCollapse = false;
+    private boolean mLightToolbar = false;
+    private boolean mLightStatusBar = false;
+
+    private int mDefaultToolbarColor;
+    private int mOldToolbarColor;
+    private int mNewToolbarColor;
+    private int mPrimaryTextColorLight;
+    private int mSecondaryTextColorLight;
+    private int mPrimaryTextColorDark;
+    private int mSecondaryTextColorDark;
+    private int mOldToolbarTextColor;
+    private int mOldToolbarIconColor;
+    private int mToolbarTextColor;
+    private int mToolbarIconColor;
+    private int mDefaultStatusBarColor;
+    private int mStatusBarColor;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mDefaultToolbarColor =
+                ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorPrimary);
+        mOldToolbarColor = mDefaultToolbarColor;
+        mPrimaryTextColorLight = getActivity().getColor(R.color.primary_text_default_material_light);
+        mSecondaryTextColorLight = getActivity().getColor(R.color.secondary_text_default_material_light);
+        mPrimaryTextColorDark = getActivity().getColor(R.color.primary_text_default_material_dark);
+        mSecondaryTextColorDark = getActivity().getColor(R.color.secondary_text_default_material_dark);
+        mOldToolbarTextColor = mPrimaryTextColorDark;
+        mOldToolbarIconColor = mSecondaryTextColorDark;
+        mToolbarTextColor = mOldToolbarTextColor;
+        mToolbarIconColor = mOldToolbarIconColor;
+        mDefaultStatusBarColor =
+                ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorPrimaryDark);
+
         setHasOptionsMenu(true);
     }
 
@@ -329,6 +372,8 @@ public final class SongListFragment extends Fragment implements
                 } catch (ExecutionException | InterruptedException e) {
                     mVisualizerColor = mDefaultVisualizerColor;
                 }
+                mNewToolbarColor = mVisualizerColor;
+                mStatusBarColor = ThemeUtil.getStatusBarBackgroundColor(mNewToolbarColor);
                 mVisualizerView.setColor(mVisualizerColor);
                 futureTarget.cancel(false);
             }
@@ -489,6 +534,18 @@ public final class SongListFragment extends Fragment implements
                     }
                     updateBottomSheetSongInfoLayout(true);
                 }
+                if (slideOffset > 0.7 && mUpdateColorsToExpand) {
+                    mUpdateColorsToExpand = false;
+                    mUpdateColorsToCollapse = true;
+                    mUseColorsForExpandedState = true;
+                    updateColors();
+                }
+                if (slideOffset < 0.7 && mUpdateColorsToCollapse) {
+                    mUpdateColorsToExpand = true;
+                    mUpdateColorsToCollapse = false;
+                    mUseColorsForExpandedState = false;
+                    updateColors();
+                }
                 if (slideOffset == 1) {
                     if (mShowVisualizer && mPlayerAdapter.isPlaying()) {
                         mVisualizerView.setPlaying(true);
@@ -523,6 +580,107 @@ public final class SongListFragment extends Fragment implements
         v.setPaddingRelative(paddingStart, v.getPaddingTop(),
                 paddingEnd, v.getPaddingBottom());
         v.setLayoutParams(params);
+    }
+
+    private void updateColors() {
+        MainActivity activity = (MainActivity) getActivity();
+        final Window window = activity.getWindow();
+        final Toolbar toolbar = activity.getToolbar();
+        AnimatorSet animators = new AnimatorSet();
+        animators.setDuration(300);
+        ArrayList<Animator> animatorlist = new ArrayList<Animator>();
+
+        final int toolbarColor = mUseColorsForExpandedState
+                ? mNewToolbarColor : mDefaultToolbarColor;
+        int statusBarColor = mUseColorsForExpandedState
+                ? mStatusBarColor
+                : mDefaultStatusBarColor;
+        boolean lightToolbar = !ColorHelper.isColorDark(toolbarColor);
+        boolean lightStatusBar = !ColorHelper.isColorDark(statusBarColor);
+        mToolbarTextColor = lightToolbar ? mPrimaryTextColorLight : mPrimaryTextColorDark;
+        mToolbarIconColor = lightToolbar ? mSecondaryTextColorLight : mSecondaryTextColorDark;
+
+        ObjectAnimator toolbarBgAnimator = ObjectAnimator.ofInt(toolbar,
+                "backgroundColor", mOldToolbarColor, toolbarColor);
+        toolbarBgAnimator.setEvaluator(new ArgbEvaluator());
+        toolbarBgAnimator.setDuration(300);
+
+        toolbarBgAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(final Animator animator) {
+                mOldToolbarColor = toolbarColor;
+                animator.addListener(null);
+            }
+        });
+        animatorlist.add(toolbarBgAnimator);
+
+        if (mLightToolbar != lightToolbar) {
+            mLightToolbar = lightToolbar;
+
+            ObjectAnimator toolbarTextAnimator = ObjectAnimator.ofInt(toolbar,
+                    "titleTextColor", mOldToolbarTextColor, mToolbarTextColor);
+            toolbarTextAnimator.setEvaluator(new ArgbEvaluator());
+            toolbarTextAnimator.setDuration(300);
+            toolbarTextAnimator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(final Animator animator) {
+                    mOldToolbarTextColor = mToolbarTextColor;
+                    animator.addListener(null);
+                }
+            });
+
+            ObjectAnimator toolbarIconAnimator = ObjectAnimator.ofInt(toolbar.getOverflowIcon(),
+                    "tint", mOldToolbarIconColor, mToolbarIconColor);
+            toolbarIconAnimator.setEvaluator(new ArgbEvaluator());
+            toolbarIconAnimator.setDuration(300);
+            toolbarIconAnimator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(final Animator animator) {
+                    mOldToolbarIconColor = mToolbarIconColor;
+                    animator.addListener(null);
+                }
+            });
+            animatorlist.add(toolbarTextAnimator);
+            animatorlist.add(toolbarIconAnimator);
+        }
+
+
+        if (window.getStatusBarColor() != statusBarColor) {
+            ObjectAnimator statusBarAnimator = ObjectAnimator.ofInt(window,
+                    "statusBarColor", window.getStatusBarColor(), statusBarColor);
+            statusBarAnimator.setEvaluator(new ArgbEvaluator());
+            statusBarAnimator.setDuration(300);
+            statusBarAnimator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(final Animator animator) {
+                    animator.addListener(null);
+                }
+            });
+            animatorlist.add(statusBarAnimator);
+
+            if (mLightStatusBar != lightStatusBar) {
+                mLightStatusBar = lightStatusBar;
+
+                int oldFlags = window.getDecorView().getSystemUiVisibility();
+                int newFlags = oldFlags;
+                if (mLightStatusBar) {
+                    newFlags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                } else {
+                    newFlags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                }
+                final int flags = newFlags;
+
+                toolbar.postOnAnimationDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        window.getDecorView().setSystemUiVisibility(flags);
+                    }
+                }, 150);
+            }
+        }
+
+        animators.playTogether(animatorlist);
+        animators.start();
     }
 
     public class LoadSongsTask extends AsyncTask<Void, Integer, String> {

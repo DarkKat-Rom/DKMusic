@@ -19,6 +19,7 @@ import android.content.Context;
 import android.util.TypedValue;
 
 public class ThemeUtil {
+    public static final int STATUS_BAR_DARKEN_COLOR = 0x30000000;
 
     public static int getColorFromThemeAttribute(Context context, int resId) {
         TypedValue tv = new TypedValue();
@@ -30,5 +31,9 @@ public class ThemeUtil {
             color = context.getColor(tv.resourceId);
         }
         return color;
+    }
+
+    public static int getStatusBarBackgroundColor(int actionBarColor) {
+        return ColorHelper.compositeColors(STATUS_BAR_DARKEN_COLOR, actionBarColor);
     }
 }
