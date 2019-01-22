@@ -22,10 +22,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.media.session.MediaSession;
+import android.media.session.MediaSession.Token;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 
+import net.darkkatrom.dkmusic.MusicPlaybackService;
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.activities.MainActivity;
 
@@ -45,18 +46,20 @@ public class NotificationUtil {
         mContext = context;
     }
 
-    public void sendNotification(String title, String text, Bitmap artwork, boolean play) {
+    public void sendNotification(String title, String text, Bitmap albumArt, boolean play,
+            Token token) {
         if ((mTitle == null && title == null)
                 || (mText == null && text == null)
-                || (mAlbumArt == null && artwork == null)) {
+                || (mAlbumArt == null && albumArt == null)) {
             return;
         }
         ((NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE))
                 .notify(MUSIC_PLAYBACK_NOTIFICATION_ID,
-                createMusicPlaybackNotification(title, text, artwork, play));
+                createNotification(title, text, albumArt, play, token));
     }
 
-    private Notification createMusicPlaybackNotification(String title, String text, Bitmap albumArt, boolean play) {
+    public Notification createNotification(String title, String text, Bitmap albumArt, boolean play,
+            Token token) {
         if (title != null) {
             mTitle = title;
         }
@@ -67,9 +70,8 @@ public class NotificationUtil {
             mAlbumArt = albumArt;
         }
 
-        MediaSession session = new MediaSession(mContext, "Test");
         Notification.MediaStyle style = new Notification.MediaStyle()
-                .setMediaSession(session.getSessionToken())
+                .setMediaSession(token)
                 .setShowActionsInCompactView(0);
 
         Notification.Builder builder = new Notification.Builder(mContext, MUSIC_PLAYBACK_NOTIFICATION_CHANNEL_ID)
@@ -86,10 +88,10 @@ public class NotificationUtil {
 
     private Action getPlayPauseAction(boolean play) {
         Bundle b = new Bundle();
-        b.putBoolean(MainActivity.KEY_ACTION_PLAY_PAUSE, play);
-        Intent intent = new Intent(mContext, MainActivity.class);
+        b.putBoolean(MusicPlaybackService.KEY_ACTION_PLAY_PAUSE, play);
+        Intent intent = new Intent(mContext, MusicPlaybackService.class);
         intent.putExtras(b);
-        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent,
+        PendingIntent pendingIntent = PendingIntent.getService(mContext, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         Action.Builder builder = new Action.Builder(play ? R.drawable.ic_action_play : R.drawable.ic_action_pause,

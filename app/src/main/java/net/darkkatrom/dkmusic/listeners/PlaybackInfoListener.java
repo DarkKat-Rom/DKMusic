@@ -1,6 +1,7 @@
-
 /*
  * Copyright 2017 Google Inc. All rights reserved.
+ *
+ * Copyright (C) 2018 DarkKat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,36 +24,40 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Allows {@link MediaPlayerHolder} to report media playback duration and progress updates to
- * the {@link MainActivity}.
+ * Allows {@link MusicPlaybackService} to report media playback duration and progress updates to
+ * the {@link SongListFragment}.
  */
 public abstract class PlaybackInfoListener {
 
-    @IntDef({State.INVALID, State.PLAYING, State.PAUSED, State.RESET, State.COMPLETED})
+    @IntDef({State.INVALID, State.PREPARED, State.PLAYING, State.PAUSED, State.RESET, State.COMPLETED})
     @Retention(RetentionPolicy.SOURCE)
     public @interface State {
 
         int INVALID = -1;
-        int PLAYING = 0;
-        int PAUSED = 1;
-        int RESET = 2;
+        int PREPARED = 0;
+        int PLAYING = 1;
+        int PAUSED = 2;
         int COMPLETED = 3;
+        int RESET = 4;
     }
 
     public static String convertStateToString(@State int state) {
         String stateString;
         switch (state) {
-            case State.COMPLETED:
-                stateString = "COMPLETED";
-                break;
             case State.INVALID:
                 stateString = "INVALID";
+                break;
+            case State.PREPARED:
+                stateString = "PREPARED";
+                break;
+            case State.PLAYING:
+                stateString = "PLAYING";
                 break;
             case State.PAUSED:
                 stateString = "PAUSED";
                 break;
-            case State.PLAYING:
-                stateString = "PLAYING";
+            case State.COMPLETED:
+                stateString = "COMPLETED";
                 break;
             case State.RESET:
                 stateString = "RESET";
@@ -63,9 +68,6 @@ public abstract class PlaybackInfoListener {
         return stateString;
     }
 
-    public void onLogUpdated(String formattedMessage) {
-    }
-
     public void onDurationChanged(int duration) {
     }
 
@@ -73,8 +75,5 @@ public abstract class PlaybackInfoListener {
     }
 
     public void onStateChanged(@State int state) {
-    }
-
-    public void onPlaybackCompleted() {
     }
 }

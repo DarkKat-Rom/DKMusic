@@ -26,8 +26,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 
+import net.darkkatrom.dkmusic.MusicPlaybackService;
 import net.darkkatrom.dkmusic.R;
-import net.darkkatrom.dkmusic.adapters.PlayerAdapter;
 import net.darkkatrom.dkmusic.fragments.SongListFragment;
 
 /**
@@ -37,7 +37,7 @@ import net.darkkatrom.dkmusic.fragments.SongListFragment;
  */
 public class PlayPauseButton extends ImageButton implements OnClickListener {
 
-    private PlayerAdapter mPlayerAdapter;
+    private MusicPlaybackService mService;
     private SongListFragment mFragment;
     /**
      * @param context The {@link Context} to use
@@ -56,8 +56,8 @@ public class PlayPauseButton extends ImageButton implements OnClickListener {
      */
     @Override
     public void onClick(final View v) {
-        if (mPlayerAdapter != null && mFragment != null) {
-            if (mPlayerAdapter.isPlaying()) {
+        if (mService != null && mFragment != null) {
+            if (mService.isPlaying()) {
                 mFragment.pause();
             } else {
                 mFragment.play();
@@ -82,8 +82,8 @@ public class PlayPauseButton extends ImageButton implements OnClickListener {
      * Sets the correct drawable for playback.
      */
     public void updateState() {
-        if (mPlayerAdapter != null) {
-            if (mPlayerAdapter.isPlaying()) {
+        if (mService != null) {
+            if (mService.isPlaying()) {
                 setImageResource(R.drawable.ic_action_pause);
             } else {
                 setImageResource(R.drawable.ic_action_play);
@@ -92,10 +92,10 @@ public class PlayPauseButton extends ImageButton implements OnClickListener {
     }
 
     /**
-     * Sets the PlayerAdapter.
+     * Sets the MusicPlaybackService.
      */
-    void setPlayerAdapter(PlayerAdapter adapter) {
-        mPlayerAdapter = adapter;
+    void setMusicPlaybackService(MusicPlaybackService service) {
+        mService = service;
     }
 
     /**

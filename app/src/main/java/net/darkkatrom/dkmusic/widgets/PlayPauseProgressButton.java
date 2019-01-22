@@ -25,8 +25,8 @@ import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
+import net.darkkatrom.dkmusic.MusicPlaybackService;
 import net.darkkatrom.dkmusic.R;
-import net.darkkatrom.dkmusic.adapters.PlayerAdapter;
 import net.darkkatrom.dkmusic.fragments.SongListFragment;
 
 /**
@@ -61,7 +61,7 @@ public class PlayPauseProgressButton extends FrameLayout {
     private long mCurrentSongDuration;
     private long mCurrentSongProgress;
 
-    private PlayerAdapter mPlayerAdapter;
+    private MusicPlaybackService mService;
 
     private boolean mPlayBackCompleted = false;
 
@@ -220,12 +220,12 @@ public class PlayPauseProgressButton extends FrameLayout {
      * Updates the state of the progress bar and the play pause button
      */
     public void updateState() {
-        if (mPlayerAdapter == null) {
+        if (mService == null) {
             mCurrentSongDuration = 0;
             mCurrentSongProgress = 0;
         } else {
-            mCurrentSongDuration = mPlayerAdapter.getDuration();
-            mCurrentSongProgress = mPlayerAdapter.getCurrentPosition();
+            mCurrentSongDuration = mService.getDuration();
+            mCurrentSongProgress = mService.getCurrentPosition();
         }
 
         int progress = 0;
@@ -349,8 +349,8 @@ public class PlayPauseProgressButton extends FrameLayout {
                         mOnDraggingListener.onStopDragging();
                     }
                 }
-                if (mDragging && mPlayerAdapter != null) {
-                    mPlayerAdapter.seekTo((int)(mDragPercentage * mCurrentSongDuration));
+                if (mDragging && mService != null) {
+                    mService.seekTo((int)(mDragPercentage * mCurrentSongDuration));
                 }
                 mDragging = false;
             default:
@@ -416,9 +416,9 @@ public class PlayPauseProgressButton extends FrameLayout {
         return angle;
     }
 
-    public void setPlayerAdapter(PlayerAdapter adapter) {
-        mPlayerAdapter = adapter;
-        mPlayPauseButton.setPlayerAdapter(mPlayerAdapter);
+    public void setMusicPlaybackService(MusicPlaybackService service) {
+        mService = service;
+        mPlayPauseButton.setMusicPlaybackService(mService);
     }
 
     public void setOnDraggingListener(OnDraggingListener listener) {
