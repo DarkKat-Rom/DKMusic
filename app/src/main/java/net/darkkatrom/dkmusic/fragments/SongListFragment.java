@@ -178,10 +178,6 @@ public final class SongListFragment extends Fragment implements
     @Override
     public void onStart() {
         super.onStart();
-
-        Intent musicIntent = new Intent(getActivity(), MusicPlaybackService.class);
-        getActivity().startService(musicIntent);
-        getActivity().bindService(musicIntent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -193,11 +189,15 @@ public final class SongListFragment extends Fragment implements
                 == PackageManager.PERMISSION_GRANTED)) {
             checkPermission();
         }
+
+        Intent musicIntent = new Intent(getActivity(), MusicPlaybackService.class);
+        getActivity().startService(musicIntent);
+        getActivity().bindService(musicIntent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onPause() {
+        super.onPause();
 
         mService.setPlaybackInfoListener(null);
         getActivity().unbindService(mConnection);

@@ -31,6 +31,11 @@
     <string name="show_visualizer_title">Musik-Visualisierung anzeigen</string>
     <string name="show_visualizer_summary_on">Visualisierung wird angezeigt</string>
     <string name="show_visualizer_summary_off">Visualisierung wird nicht angezeigt</string>
+
+    <string name="show_album_art_on_lock_screen_title">Albumcover auf dem Sperrbildschirm anzeigen</string>
+    <string name="show_album_art_on_lock_screen_summary_on">Albumcover wird angezeigt</string>
+    <string name="show_album_art_on_lock_screen_summary_off">Albumcover wird nicht angezeigt</string>
+
     <string name="permission_dialog_title">Audio aufnehmen</string>
     <string name="permission_dialog_message">Die Musik-Visualisierung benötigt die \"Audio aufnehmen\" Berechtigung.\nDiese Berechtigung kann zu jeder Zeit über:\n(System) Einstellungen -> \"Apps &amp; Benachrichtigungen\" -> \"DarkKat Musik\" -> \"Berechtigungen\" -> \"Mikrofon\" gewährt oder verweigert werden.\nKlicke auf \"OK\" um den System Dialog anzuzeigen und die Berechtigung zu gewähren,\nklicke auf \"Abbrechen\" um die Musik-Visualisierung zu deaktivieren.</string>
     <string name="toast_message">Berechtigung verweigert, Musik-Visualisierung deaktiviert</string>

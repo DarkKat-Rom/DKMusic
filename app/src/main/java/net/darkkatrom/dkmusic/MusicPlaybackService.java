@@ -31,6 +31,7 @@ import android.os.IBinder;
 import net.darkkatrom.dkmusic.activities.MainActivity;
 import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
 import net.darkkatrom.dkmusic.models.Song;
+import net.darkkatrom.dkmusic.utils.Config;
 import net.darkkatrom.dkmusic.utils.NotificationUtil;
 
 import java.util.concurrent.Executors;
@@ -56,6 +57,8 @@ public class MusicPlaybackService extends Service {
     private Song mSong;
     private Bitmap mAlbumArt;
 
+    private boolean mShowAlbumArtOnLockScreen;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -63,6 +66,7 @@ public class MusicPlaybackService extends Service {
         initializeMediaPlayer();
         mSession = new MediaSession(this, "DKMusic");
         mNotificationUtil = new NotificationUtil(this);
+        mShowAlbumArtOnLockScreen = Config.getShowAlbumArtOnLockScreen(this);
 
     }
 
@@ -164,23 +168,34 @@ public class MusicPlaybackService extends Service {
     public void setAlbumArt(Bitmap albumArt) {
         mAlbumArt = albumArt;
 
-        if (mAlbumArt != null) {
-            Bitmap.Config config = mAlbumArt.getConfig();
-            if (config == null) {
-                config = Bitmap.Config.ARGB_8888;
-            }
-            Bitmap albumArtCopy = mAlbumArt.copy(config, false);
-
-            mSession.setMetadata(new MediaMetadata.Builder()
-                    .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArtCopy)
-                    .build());
+        updateMediaMetadata();
+        if (mSong != null) {
+            mNotificationUtil.sendNotification(mSong.getTitle(), mSong.getArtist(), mAlbumArt, !isPlaying(),
+                    mSession.getSessionToken());
         }
-        mNotificationUtil.sendNotification(mSong.getTitle(), mSong.getArtist(), mAlbumArt, !isPlaying(),
-                mSession.getSessionToken());
     }
 
     public Bitmap getAlbumArt() {
         return mAlbumArt;
+    }
+
+    public void updateShowAlbumArtOnLockScreen() {
+        mShowAlbumArtOnLockScreen = Config.getShowAlbumArtOnLockScreen(this);
+        setAlbumArt(mAlbumArt);
+    }
+
+    private void updateMediaMetadata() {
+        Bitmap albumArtCopy = null;
+        if (mAlbumArt != null && mShowAlbumArtOnLockScreen) {
+            Bitmap.Config config = mAlbumArt.getConfig();
+            if (config == null) {
+                config = Bitmap.Config.ARGB_8888;
+            }
+            albumArtCopy = mAlbumArt.copy(config, false);
+        }
+        mSession.setMetadata(new MediaMetadata.Builder()
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArtCopy)
+                .build());
     }
 
     public void release() {

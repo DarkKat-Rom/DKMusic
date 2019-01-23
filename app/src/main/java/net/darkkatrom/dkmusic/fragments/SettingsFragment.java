@@ -20,12 +20,17 @@ import android.Manifest.permission;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceFragment;
 import android.preference.TwoStatePreference;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +38,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Toast;
 
+import net.darkkatrom.dkmusic.MusicPlaybackService;
+import net.darkkatrom.dkmusic.MusicPlaybackService.LocalBinder;
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.utils.Config;
 
@@ -77,6 +84,10 @@ public class SettingsFragment extends PreferenceFragment implements
             String key) {
         if (Config.PREF_KEY_SHOW_VISUALIZER.equals(key)) {
             checkPermission();
+        } else if (Config.PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN.equals(key)) {
+            Intent musicIntent = new Intent(getActivity(), MusicPlaybackService.class);
+            getActivity().startService(musicIntent);
+            getActivity().bindService(musicIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -172,4 +183,18 @@ public class SettingsFragment extends PreferenceFragment implements
         toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
     }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            LocalBinder binder = (LocalBinder) service;
+            binder.getService().updateShowAlbumArtOnLockScreen();
+            SettingsFragment.this.getActivity().unbindService(this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+        }
+    };
 }

@@ -22,6 +22,7 @@ import android.preference.PreferenceManager;
 public class Config {
 
     public static final String PREF_KEY_SHOW_VISUALIZER = "show_visualizer";
+    public static final String PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN = "show_album_art_on_lock_screen";
 
 
     public static boolean getShowVisualizer(Context context) {
@@ -29,5 +30,12 @@ public class Config {
                 .getDefaultSharedPreferences(context);
 
         return prefs.getBoolean(PREF_KEY_SHOW_VISUALIZER, false);
+    }
+
+    public static boolean getShowAlbumArtOnLockScreen(Context context) {
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+
+        return prefs.getBoolean(PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN, true);
     }
 }

@@ -23,4 +23,11 @@ limitations under the License.
         android:summaryOff="@string/show_visualizer_summary_off"
         android:defaultValue="false" />
 
+    <SwitchPreference
+        android:key="show_album_art_on_lock_screen"
+        android:title="@string/show_album_art_on_lock_screen_title"
+        android:summaryOn="@string/show_album_art_on_lock_screen_summary_on"
+        android:summaryOff="@string/show_album_art_on_lock_screen_summary_off"
+        android:defaultValue="true" />
+
 </PreferenceScreen>
