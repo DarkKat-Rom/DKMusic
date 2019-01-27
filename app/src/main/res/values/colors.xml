@@ -28,7 +28,17 @@
     <!-- Color for the visualizer bars -->
     <color name="visualizer_fill_color">#bffafafa</color>
 
+    <!-- Play/pause progress button -->
+
+    <!-- Colors for progress background and current progress (light theme) -->
+    <color name="circular_progress_bar_background_light">#40000000</color>
+    <color name="circular_progress_bar_light">@android:color/black</color>
+
     <!-- CyanogenMod/LineageOS additions -->
+
+    <!-- Colors for progress background and current progress (dark theme) -->
     <color name="circular_progress_bar_background">#40ffffff</color>
     <color name="circular_progress_bar">@android:color/white</color>
+    <!-- CyanogenMod/LineageOS additions end -->
+    <!-- Play/pause progress button end -->
 </resources>

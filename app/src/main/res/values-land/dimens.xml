@@ -18,6 +18,13 @@
     <!-- General -->
     <dimen name="album_art_big_size">280dp</dimen>
 
+    <!-- Main content -->
+
+    <!-- Popup window content -->
+    <dimen name="popup_content_height">48dp</dimen>
+    <dimen name="popup_content_padding_top_bottom">0dp</dimen>
+    <!-- Main content end -->
+
     <!-- Bottom sheet -->
     <dimen name="bottom_sheet_main_content_margin_start_end">16dp</dimen>
     <dimen name="bottom_sheet_main_content_margin_top_bottom">8dp</dimen>

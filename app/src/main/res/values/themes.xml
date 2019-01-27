@@ -20,20 +20,60 @@
         <item name="colorPrimary">@color/primary_theme_dark</item>
         <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
         <item name="colorAccent">@color/accent_theme</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="android:colorBackground">@color/darkkat_blue_grey</item>
+        <item name="colorBackgroundFloating">@color/darkkat_blue_blue_grey</item>
+        <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
+        <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
+        <item name="circularProgressBarColor">@color/circular_progress_bar</item>
+        <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background</item>
+    </style>
+
+    <!-- App theme Dark -->
+    <style name="AppThemeDark"  parent="@style/Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/primary_theme_dark</item>
+        <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
+        <item name="colorAccent">@color/accent_theme</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="circularProgressBarColor">@color/circular_progress_bar</item>
+        <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background</item>
+    </style>
+
+    <!-- App theme Light -->
+    <style name="AppThemeLight"  parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary_theme_dark</item>
+        <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
+        <item name="colorAccent">@color/accent_theme</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="circularProgressBarColor">@color/circular_progress_bar_light</item>
+        <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background_light</item>
+    </style>
+
+    <!-- Settings theme DarkKat -->
+    <style name="SettingsDarkKat"  parent="@style/Theme.AppCompat">
+        <item name="colorPrimary">@color/primary_theme_dark</item>
+        <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
+        <item name="colorAccent">@color/accent_theme</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="android:colorBackground">@color/darkkat_blue_grey</item>
         <item name="colorBackgroundFloating">@color/darkkat_blue_blue_grey</item>
         <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
         <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
     </style>
 
-    <!-- App theme DarkKat -->
-    <style name="SettingsDarkKat"  parent="@style/Theme.AppCompat">
+    <!-- Settings theme Dark -->
+    <style name="SettingsDark"  parent="@style/Theme.AppCompat">
         <item name="colorPrimary">@color/primary_theme_dark</item>
         <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
         <item name="colorAccent">@color/accent_theme</item>
-        <item name="android:colorBackground">@color/darkkat_blue_grey</item>
-        <item name="colorBackgroundFloating">@color/darkkat_blue_blue_grey</item>
-        <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
-        <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+    </style>
+
+    <!-- Settings theme Light -->
+    <style name="SettingsLight"  parent="@style/Theme.AppCompat.Light">
+        <item name="colorPrimary">@color/primary_theme_dark</item>
+        <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
+        <item name="colorAccent">@color/accent_theme</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
     </style>
 </resources>

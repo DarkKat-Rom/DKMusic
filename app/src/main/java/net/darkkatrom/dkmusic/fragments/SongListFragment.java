@@ -22,14 +22,17 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.ServiceConnection;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -41,8 +44,10 @@ import android.support.v4.app.Fragment;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.transition.TransitionManager;
+import android.transition.Transition;
+import android.transition.TransitionInflater;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -53,6 +58,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -103,6 +109,9 @@ public final class SongListFragment extends Fragment implements
     private TextView mArtist;
     private PlayPauseProgressButton mPlayPauseProgressButtonBig;
 
+    private MenuItem mMenuItemMore;
+    private PopupWindow mPopup;
+
     private LockableBottomSheetBehavior mBottomSheetBehavior;
     private boolean mBottomSheetExpanded = false;
 
@@ -128,9 +137,7 @@ public final class SongListFragment extends Fragment implements
     private int mPrimaryTextColorDark;
     private int mSecondaryTextColorDark;
     private int mOldToolbarTextColor;
-    private int mOldToolbarIconColor;
     private int mToolbarTextColor;
-    private int mToolbarIconColor;
     private int mDefaultStatusBarColor;
     private int mStatusBarColor;
 
@@ -150,9 +157,7 @@ public final class SongListFragment extends Fragment implements
         mPrimaryTextColorDark = getActivity().getColor(R.color.primary_text_default_material_dark);
         mSecondaryTextColorDark = getActivity().getColor(R.color.secondary_text_default_material_dark);
         mOldToolbarTextColor = mPrimaryTextColorDark;
-        mOldToolbarIconColor = mSecondaryTextColorDark;
         mToolbarTextColor = mOldToolbarTextColor;
-        mToolbarIconColor = mOldToolbarIconColor;
         mDefaultStatusBarColor =
                 ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorPrimaryDark);
 
@@ -171,6 +176,7 @@ public final class SongListFragment extends Fragment implements
 
         mRoot = inflater.inflate(R.layout.fragment_song_list, container, false);
         initializeUI();
+        initializePopupWindow();
 
         return mRoot;
     }
@@ -206,13 +212,14 @@ public final class SongListFragment extends Fragment implements
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_main, menu);
+
+        mMenuItemMore = menu.findItem(R.id.item_more);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.item_settings) {
-            Intent intent = new Intent(getActivity(), SettingsActivity.class);
-            startActivity(intent);
+        if (item.getItemId() == R.id.item_more) {
+            mPopup.showAtLocation(mRoot, (Gravity.TOP | Gravity.END), 0 , 0);
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -261,6 +268,49 @@ public final class SongListFragment extends Fragment implements
         mBottomSheetBehavior.setBottomSheetCallback(new Callback());
         mBottomSheetBehavior.setLocked(true);
     }
+
+    private void initializePopupWindow() {
+        mPopup = new PopupWindow(getThemedPopupContent(), ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        mPopup.setBackgroundDrawable(new ColorDrawable(0));
+        mPopup.setOutsideTouchable(true);
+        Transition popupEnter = TransitionInflater.from(getActivity()).
+                inflateTransition(R.transition.popup_window_enter);
+        Transition popupExit = TransitionInflater.from(getActivity()).
+                inflateTransition(R.transition.popup_window_exit);
+        float popupElevation = getActivity().getResources().getDimension(R.dimen.popup_window_elevation);
+        mPopup.setEnterTransition(popupEnter);
+        mPopup.setExitTransition(popupExit);
+        mPopup.setElevation(popupElevation);
+    }
+
+    private View getThemedPopupContent() {
+        int themeResId = 0;
+
+        if (mLightToolbar) {
+            themeResId = R.style.AppThemeLight;
+        } else {
+            if (Config.getTheme(getActivity()) == Config.THEME_MATERIAL_DARKKAT) {
+                themeResId = R.style.AppThemeDarkKat;
+            } else {
+                themeResId = R.style.AppThemeDark;
+            }
+        }     
+
+        ContextThemeWrapper themedContext = new ContextThemeWrapper(getActivity(), themeResId);
+        View content = LayoutInflater.from(themedContext).inflate(R.layout.popup_content, null);
+        content.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                startActivity(intent);
+                mPopup.dismiss();
+            }
+        });
+
+        return content;
+    }
+         
 
     private void initializePlayPauseProgressButtons() {
         mPlayPauseProgressButtonBig.setMusicPlaybackService(mService);
@@ -556,7 +606,6 @@ public final class SongListFragment extends Fragment implements
         boolean lightToolbar = !ColorHelper.isColorDark(toolbarColor);
         boolean lightStatusBar = !ColorHelper.isColorDark(statusBarColor);
         mToolbarTextColor = lightToolbar ? mPrimaryTextColorLight : mPrimaryTextColorDark;
-        mToolbarIconColor = lightToolbar ? mSecondaryTextColorLight : mSecondaryTextColorDark;
 
         ObjectAnimator toolbarBgAnimator = ObjectAnimator.ofInt(toolbar,
                 "backgroundColor", mOldToolbarColor, toolbarColor);
@@ -584,22 +633,17 @@ public final class SongListFragment extends Fragment implements
                 public void onAnimationEnd(final Animator animator) {
                     mOldToolbarTextColor = mToolbarTextColor;
                     animator.addListener(null);
+                    mPopup.setContentView(getThemedPopupContent());
                 }
             });
-
-            ObjectAnimator toolbarIconAnimator = ObjectAnimator.ofInt(toolbar.getOverflowIcon(),
-                    "tint", mOldToolbarIconColor, mToolbarIconColor);
-            toolbarIconAnimator.setEvaluator(new ArgbEvaluator());
-            toolbarIconAnimator.setDuration(300);
-            toolbarIconAnimator.addListener(new AnimatorListenerAdapter() {
+            toolbarTextAnimator.addUpdateListener(new ObjectAnimator.AnimatorUpdateListener() {
                 @Override
-                public void onAnimationEnd(final Animator animator) {
-                    mOldToolbarIconColor = mToolbarIconColor;
-                    animator.addListener(null);
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    int color = (int) animation.getAnimatedValue();
+                    mMenuItemMore.setIconTintList(ColorStateList.valueOf(color));
                 }
             });
             animatorlist.add(toolbarTextAnimator);
-            animatorlist.add(toolbarIconAnimator);
         }
 
 

@@ -88,6 +88,8 @@ public class SettingsFragment extends PreferenceFragment implements
             Intent musicIntent = new Intent(getActivity(), MusicPlaybackService.class);
             getActivity().startService(musicIntent);
             getActivity().bindService(musicIntent, mConnection, Context.BIND_AUTO_CREATE);
+        } else if (Config.PREF_KEY_THEME.equals(key)) {
+            getActivity().recreate();
         }
     }
 

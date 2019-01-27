@@ -20,11 +20,13 @@ import android.support.v7.app.AppCompatActivity;
 
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.fragments.SettingsFragment;
+import net.darkkatrom.dkmusic.utils.ThemeUtil;
 
 public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(ThemeUtil.getThemeResId(this, false));
         super.onCreate(savedInstanceState);
 
         getFragmentManager()

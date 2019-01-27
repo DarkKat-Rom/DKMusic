@@ -30,4 +30,11 @@ limitations under the License.
         android:summaryOff="@string/show_album_art_on_lock_screen_summary_off"
         android:defaultValue="true" />
 
+    <ListPreference
+        android:key="theme"
+        android:title="@string/theme_title"
+        android:summary="@string/list_preference_default_summary"
+        android:entries="@array/theme_entries"
+        android:entryValues="@array/theme_values"
+        android:defaultValue="0" />
 </PreferenceScreen>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2016 DarkKat
+<!-- Copyright (C) 2014 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,11 +14,8 @@
      limitations under the License.
 -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/item_more"
-        android:icon="@drawable/ic_action_more"
-        android:title="@string/settings_title"
-        app:showAsAction="always" />
-</menu>
+<!-- Copy of: frameworks/base/core/res/res/transition/popup_window_exit.xml -->
+
+<!-- Fade out moderately fast. -->
+<fade xmlns:android="http://schemas.android.com/apk/res/android"
+      android:duration="300" />

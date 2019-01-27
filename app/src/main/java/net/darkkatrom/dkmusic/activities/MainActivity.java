@@ -25,14 +25,18 @@ import android.support.v7.widget.Toolbar;
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.fragments.SongListFragment;
 import net.darkkatrom.dkmusic.utils.NotificationUtil;
+import net.darkkatrom.dkmusic.utils.ThemeUtil;
 
 public final class MainActivity extends AppCompatActivity {
     private static final String FRAGMENT_TAG = "song_list_fragment";
 
+    private int mThemeResId = 0;
     private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mThemeResId = ThemeUtil.getThemeResId(this, true);
+        setTheme(mThemeResId);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -45,6 +49,14 @@ public final class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_content, new SongListFragment(), FRAGMENT_TAG)
                     .commit();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mThemeResId != ThemeUtil.getThemeResId(this, true)) {
+            recreate();
         }
     }
 

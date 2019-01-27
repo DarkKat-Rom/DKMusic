@@ -23,7 +23,10 @@ public class Config {
 
     public static final String PREF_KEY_SHOW_VISUALIZER = "show_visualizer";
     public static final String PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN = "show_album_art_on_lock_screen";
+    public static final String PREF_KEY_THEME = "theme";
 
+    public static final int THEME_MATERIAL_DARKKAT = 0;
+    public static final int THEME_MATERIAL         = 1;
 
     public static boolean getShowVisualizer(Context context) {
         SharedPreferences prefs = PreferenceManager
@@ -37,5 +40,13 @@ public class Config {
                 .getDefaultSharedPreferences(context);
 
         return prefs.getBoolean(PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN, true);
+    }
+
+    public static int getTheme(Context context) {
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+
+        String valueString = prefs.getString(PREF_KEY_THEME, "0");
+        return Integer.valueOf(valueString);
     }
 }

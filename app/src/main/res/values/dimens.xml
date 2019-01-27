@@ -22,6 +22,19 @@
 
     <!-- Main content -->
 
+    <!-- Popup window -->
+    <dimen name="popup_window_elevation">16dp</dimen>
+
+    <!-- Popup window content -->
+    <dimen name="popup_content_height">56dp</dimen>
+    <dimen name="popup_content_title_height">48dp</dimen>
+    <dimen name="popup_content_padding_top_bottom">4dp</dimen>
+    <dimen name="popup_content_padding_end">4dp</dimen>
+    <dimen name="popup_content_title_min_width">196dp</dimen>
+    <dimen name="popup_content_title_padding_start_end">16dp</dimen>
+    <dimen name="popup_content_title_text_size">16sp</dimen>
+    <!-- Popup window end -->
+
     <!-- Loading media -->
     <dimen name="loading_media_text_margin_start_end">16dp</dimen>
     <dimen name="loading_media_text_size">22sp</dimen>

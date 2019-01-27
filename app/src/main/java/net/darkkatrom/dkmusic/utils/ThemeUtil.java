@@ -18,8 +18,22 @@ package net.darkkatrom.dkmusic.utils;
 import android.content.Context;
 import android.util.TypedValue;
 
+import net.darkkatrom.dkmusic.R;
+
 public class ThemeUtil {
     public static final int STATUS_BAR_DARKEN_COLOR = 0x30000000;
+
+    public static int getThemeResId(Context context, boolean appTheme) {
+        int themeResId = 0;
+        if (Config.getTheme(context) == Config.THEME_MATERIAL_DARKKAT) {
+            themeResId = appTheme ? R.style.AppThemeDarkKat : R.style.SettingsDarkKat;
+        } else if (Config.getTheme(context) == Config.THEME_MATERIAL) {
+            themeResId = appTheme ? R.style.AppThemeDark : R.style.SettingsDark;
+        } else {
+            themeResId = appTheme ? R.style.AppThemeLight : R.style.SettingsLight;
+        }
+        return themeResId;
+    }
 
     public static int getColorFromThemeAttribute(Context context, int resId) {
         TypedValue tv = new TypedValue();
