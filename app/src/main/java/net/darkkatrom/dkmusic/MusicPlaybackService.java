@@ -16,9 +16,12 @@
 
 package net.darkkatrom.dkmusic;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.media.MediaMetadata;
@@ -27,6 +30,8 @@ import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.SystemClock;
+import android.preference.PreferenceManager;
 
 import net.darkkatrom.dkmusic.activities.MainActivity;
 import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
@@ -41,8 +46,13 @@ import java.util.concurrent.TimeUnit;
 public class MusicPlaybackService extends Service {
     public static final int PLAYBACK_POSITION_REFRESH_INTERVAL_MS = 1000;
     public static final String KEY_ACTION_PLAY_PAUSE = "action_play_pause";
+    public static final String KEY_ACTION_SHUTDOWN   = "shutdown";
+
+    private static final int IDLE_DELAY = 5 * 60 * 1000;
 
     private final IBinder mBinder = new LocalBinder();
+
+    private boolean mServiceInUse = false;
 
     private MediaPlayer mMediaPlayer;
     private MediaSession mSession;
@@ -53,11 +63,16 @@ public class MusicPlaybackService extends Service {
     private NotificationUtil mNotificationUtil;
 
     private boolean mIsMediaPlayerPrepared = false;
+    private boolean mIsMediaPlayerReleased = true;
 
     private Song mSong;
     private Bitmap mAlbumArt;
 
     private boolean mShowAlbumArtOnLockScreen;
+
+    private AlarmManager mAlarmManager;
+    private PendingIntent mShutdownIntent;
+    private boolean mShutdownScheduled;
 
     @Override
     public void onCreate() {
@@ -68,18 +83,48 @@ public class MusicPlaybackService extends Service {
         mNotificationUtil = new NotificationUtil(this);
         mShowAlbumArtOnLockScreen = Config.getShowAlbumArtOnLockScreen(this);
 
+        final Intent shutdownIntent = new Intent(this, MusicPlaybackService.class);
+        shutdownIntent.setAction(KEY_ACTION_SHUTDOWN);
+
+        mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        mShutdownIntent = PendingIntent.getService(this, 0, shutdownIntent, 0);
+
+        mSong = Config.getSong(this);
+        if (mSong != null) {
+            setDataSource(mSong.getData());
+            int position = Config.getPlaybackPosition(this);
+            if (position > 0) {
+                savePlaybackPosition();
+                seekTo(position);
+
+            }
+        }
+
+        scheduleDelayedShutdown();
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        release();
+        if (!mIsMediaPlayerReleased) {
+            savePlaybackPosition();
+            release();
+        }
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (intent != null) {
+            final String action = intent.getAction();
+
+            if (KEY_ACTION_SHUTDOWN.equals(action)) {
+                mShutdownScheduled = false;
+                releaseAndStop();
+                return START_NOT_STICKY;
+            }
+
             if (intent.hasExtra(KEY_ACTION_PLAY_PAUSE)) {
                 boolean play = intent.getBooleanExtra(KEY_ACTION_PLAY_PAUSE, false);
                 if (play) {
@@ -101,11 +146,54 @@ public class MusicPlaybackService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        cancelShutdown();
+        mServiceInUse = true;
         return mBinder;
+    }
+
+    @Override
+    public boolean onUnbind(final Intent intent) {
+        mServiceInUse = false;
+        scheduleDelayedShutdown();
+        return true;
+    }
+
+    @Override
+    public void onRebind(final Intent intent) {
+        cancelShutdown();
+        mServiceInUse = true;
+    }
+
+    private void scheduleDelayedShutdown() {
+        mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + IDLE_DELAY, mShutdownIntent);
+        mShutdownScheduled = true;
+    }
+
+    private void cancelShutdown() {
+        if (mShutdownScheduled) {
+            mAlarmManager.cancel(mShutdownIntent);
+            mShutdownScheduled = false;
+        }
+    }
+
+    private void releaseAndStop() {
+        if (isPlaying()) {
+            return;
+        }
+
+        if (!mServiceInUse) {
+            if (!mIsMediaPlayerReleased) {
+                savePlaybackPosition();
+                release();
+            }
+            stopSelf();
+        }
     }
 
     private void initializeMediaPlayer() {
         mMediaPlayer = new MediaPlayer();
+        mIsMediaPlayerReleased = false;
         mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
@@ -122,7 +210,7 @@ public class MusicPlaybackService extends Service {
         if (mPlaybackInfoListener == null) {
             stopUpdatingCallbackWithPosition(false);
         } else {
-            if (mMediaPlayer != null) {
+            if (mIsMediaPlayerPrepared) {
                 mPlaybackInfoListener.onStateChanged(PlaybackInfoListener.State.PREPARED);
                 final int duration = mMediaPlayer.getDuration();
                 int currentPosition = mMediaPlayer.getCurrentPosition();
@@ -159,6 +247,7 @@ public class MusicPlaybackService extends Service {
     public void setSong(Song song) {
         mSong = song;
         setDataSource(mSong.getData());
+        saveSong();
     }
 
     public Song getSong() {
@@ -198,6 +287,19 @@ public class MusicPlaybackService extends Service {
                 .build());
     }
 
+    private void saveSong() {
+        Song song = getSong();
+        if (song == null) {
+            return;
+        }
+
+        Config.saveSong(this, song);
+    }
+
+    private void savePlaybackPosition() {
+        Config.savePlaybackPosition(this, getCurrentPosition());
+    }
+
     public void release() {
         if (mIsMediaPlayerPrepared) {
             if (mMediaPlayer.isPlaying()) {
@@ -205,12 +307,15 @@ public class MusicPlaybackService extends Service {
             } else {
                 NotificationUtil.removeNotification(this);
             }
+        } else {
+            NotificationUtil.removeNotification(this);
         }
         mMediaPlayer.release();
         mMediaPlayer = null;
+        mIsMediaPlayerPrepared = false;
+        mIsMediaPlayerReleased = true;
         mSession.setActive(false);
         mSession.release();
-        mIsMediaPlayerPrepared = false;
         if (mPlaybackInfoListener != null) {
             mPlaybackInfoListener.onStateChanged(PlaybackInfoListener.State.PAUSED);
             mPlaybackInfoListener.onStateChanged(PlaybackInfoListener.State.RESET);
@@ -239,6 +344,7 @@ public class MusicPlaybackService extends Service {
                 mPlaybackInfoListener.onStateChanged(PlaybackInfoListener.State.PLAYING);
                 startUpdatingCallbackWithPosition();
             }
+            cancelShutdown();
         }
     }
 

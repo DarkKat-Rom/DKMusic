@@ -246,6 +246,9 @@ public class PlayPauseProgressButton extends FrameLayout {
 
         mProgressBar.setProgress(progress);
         mPlayPauseButton.updateState();
+        if (mPlayPauseButton.isEnabled() != isEnabled()) {
+            mPlayPauseButton.setEnabled(isEnabled());
+        }
     }
 
     /**

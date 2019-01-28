@@ -534,7 +534,7 @@ public final class SongListFragment extends Fragment implements
                     mBottomSheet.setClickable(false);
                     mBottomSheet.setBackground(null);
                     mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.GONE);
-                    if (mPlayPauseProgressButtonSmall.isEnabled()) {
+                    if (!mPlayPauseProgressButtonSmall.isEnabled()) {
                         mPlayPauseProgressButtonSmall.setEnabled(true);
                     }
                     if (mPlayPauseProgressButtonBig.isEnabled()) {
