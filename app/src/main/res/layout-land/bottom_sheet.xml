@@ -60,24 +60,24 @@
         android:layout_marginBottom="@dimen/bottom_sheet_main_content_margin_top_bottom">
 
         <FrameLayout
-            android:id="@+id/album_art_big_frame"
-            android:layout_width="@dimen/album_art_big_size"
-            android:layout_height="@dimen/album_art_big_size"
-            android:layout_marginEnd="@dimen/bottom_sheet_album_art_big_frame_margin"
+            android:id="@+id/bottom_sheet_album_art_frame"
+            android:layout_width="@dimen/bottom_sheet_album_art_size"
+            android:layout_height="@dimen/bottom_sheet_album_art_size"
+            android:layout_marginEnd="@dimen/bottom_sheet_album_art_frame_margin"
             android:layout_gravity="center_vertical"
             android:visibility="invisible">
 
             <ImageView
-                android:id="@+id/album_art_big"
-                android:layout_width="@dimen/album_art_big_size"
-                android:layout_height="@dimen/album_art_big_size"
+                android:id="@+id/bottom_sheet_album_art"
+                android:layout_width="@dimen/bottom_sheet_album_art_size"
+                android:layout_height="@dimen/bottom_sheet_album_art_size"
                 android:src="@drawable/default_artwork"
                 android:scaleType="centerInside" />
 
             <net.darkkatrom.dkmusic.widgets.VisualizerView
-                android:id="@+id/visualizerView"
-                android:layout_width="@dimen/album_art_big_size"
-                android:layout_height="@dimen/album_art_big_size"
+                android:id="@+id/bottom_sheet_visualizer_view"
+                android:layout_width="@dimen/bottom_sheet_album_art_size"
+                android:layout_height="@dimen/bottom_sheet_album_art_size"
                 android:layout_gravity="bottom"
                 android:gravity="bottom"
                 android:visibility="visible" />
@@ -133,7 +133,7 @@
                 android:gravity="center">
 
                 <TextView
-                    android:id="@+id/song_play_time"
+                    android:id="@+id/bottom_sheet_song_play_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -141,9 +141,9 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
                 <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
-                    android:id="@+id/button_play_pause_big"
-                    android:layout_width="@dimen/bottom_sheet_button_play_pause_big_size"
-                    android:layout_height="@dimen/bottom_sheet_button_play_pause_big_size"
+                    android:id="@+id/bottom_sheet_button_play_pause"
+                    android:layout_width="@dimen/bottom_sheet_button_play_pause_size"
+                    android:layout_height="@dimen/bottom_sheet_button_play_pause_size"
                     android:layout_gravity="center_horizontal">
 
                     <net.darkkatrom.dkmusic.widgets.PlayPauseButton
@@ -180,7 +180,7 @@
                 </net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton>
 
                 <TextView
-                    android:id="@+id/song_time_remaining"
+                    android:id="@+id/bottom_sheet_song_time_remaining"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/bottom_sheet_song_time_remaining_margin_start"

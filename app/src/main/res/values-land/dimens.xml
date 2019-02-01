@@ -15,9 +15,6 @@
 -->
 <resources>
 
-    <!-- General -->
-    <dimen name="album_art_big_size">280dp</dimen>
-
     <!-- Main content -->
 
     <!-- Popup window content -->
@@ -33,4 +30,5 @@
     <dimen name="bottom_sheet_expanded_song_info_padding_start">16dp</dimen>
     <dimen name="bottom_sheet_expanded_song_info_padding_end">16dp</dimen>
     <dimen name="bottom_sheet_expanded_song_info_margin_top">8dp</dimen>
+    <dimen name="bottom_sheet_album_art_size">280dp</dimen>
 </resources>

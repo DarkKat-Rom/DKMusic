@@ -99,35 +99,35 @@ public final class SongListFragment extends Fragment implements
     private TextView mLoadingMediaText;
     private ProgressBar mLoadingMediaProgress;
     private RecyclerView mList;
-    private ViewGroup mBottomSheet;
     private View mBottomBar;
     private ImageView mBottomBarDragHandle;
     private View mBottomBarContent;
-    private ImageView mAlbumArtSmall;
-    private PlayPauseProgressButton mPlayPauseProgressButtonSmall;
-    private ImageView mAlbumArtBig;
-    private VisualizerView mVisualizerView;
-    private TextView mSongPlayTime;
-    private TextView mSongTimeRemaining;
-    private TextView mBottomSheetSongTitle;
-    private TextView mBottomSheetSongArtist;
+    private ImageView mBottomBarAlbumArt;
     private TextView mBottomBarSongTitle;
     private TextView mBottomBarSongArtist;
-    private PlayPauseProgressButton mPlayPauseProgressButtonBig;
+    private PlayPauseProgressButton mBottomBarPlayPauseButton;
+    private PlayPauseProgressButton mBottomSheetPlayPauseButton;
+    private ViewGroup mBottomSheet;
+    private TextView mBottomSheetSongTitle;
+    private TextView mBottomSheetSongArtist;
+    private ImageView mBottomSheetAlbumArt;
+    private VisualizerView mBottomSheetVisualizerView;
+    private TextView mBottomSheetSongPlayTime;
+    private TextView mBottomSheetSongTimeRemaining;
 
     private MenuItem mMenuItemMore;
     private PopupWindow mPopup;
-
     private LockableBottomSheetBehavior mBottomSheetBehavior;
-    private boolean mBottomSheetExpanded = false;
+    private List<Song> mSongs;
+    private MusicPlaybackService mService;
+    private PlaybackListener mPlaybackListener;
 
     private boolean mCanReadExternalStorage = false;
+
     private boolean mUserIsDragging = false;
     private int mDuration;
     private boolean mShowVisualizer;
-    private int mDefaultVisualizerColor = 0;
-    private int mVisualizerColor = 0;
-    private List<Song> mSongs;
+    private boolean mBottomSheetExpanded = false;
 
     private boolean mUseColorsForExpandedState = true;
     private boolean mUpdateColorsToExpand = true;
@@ -135,6 +135,8 @@ public final class SongListFragment extends Fragment implements
     private boolean mLightToolbar = false;
     private boolean mLightStatusBar = false;
 
+    private int mDefaultVisualizerColor = 0;
+    private int mVisualizerColor = 0;
     private int mDefaultToolbarColor;
     private int mOldToolbarColor;
     private int mNewToolbarColor;
@@ -148,10 +150,6 @@ public final class SongListFragment extends Fragment implements
     private int mStatusBarColor;
     private int mDefaultBottomBarBgColor;
     private int mBottomBarBgColor;
-
-    private MusicPlaybackService mService;
-
-    private PlaybackListener mPlaybackListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -257,26 +255,26 @@ public final class SongListFragment extends Fragment implements
         mLoadingMediaText = (TextView) mRoot.findViewById(R.id.loading_media_text);
         mLoadingMediaProgress = (ProgressBar) mRoot.findViewById(R.id.loading_media_progress);
         mList = (RecyclerView) mRoot.findViewById(R.id.list);
-        mBottomSheet = (ViewGroup) mRoot.findViewById(R.id.bottom_sheet);
         mBottomBar = mRoot.findViewById(R.id.bottom_bar);
         mBottomBarDragHandle = (ImageView) mRoot.findViewById(R.id.bottom_bar_drag_handle);
         mBottomBarContent = mRoot.findViewById(R.id.bottom_bar_content);
-        mAlbumArtSmall = (ImageView) mRoot.findViewById(R.id.album_art_small);
-        mPlayPauseProgressButtonSmall = (PlayPauseProgressButton) mRoot.findViewById(R.id.button_play_pause_small);
-        mAlbumArtBig = (ImageView) mRoot.findViewById(R.id.album_art_big);
-        mVisualizerView = (VisualizerView) mRoot.findViewById(R.id.visualizerView);
-        mSongPlayTime = (TextView) mRoot.findViewById(R.id.song_play_time);
-        mSongTimeRemaining = (TextView) mRoot.findViewById(R.id.song_time_remaining);
-        mBottomSheetSongTitle = (TextView) mRoot.findViewById(R.id.bottom_sheet_song_title);
-        mBottomSheetSongArtist = (TextView) mRoot.findViewById(R.id.bottom_sheet_artist_title);
+        mBottomBarAlbumArt = (ImageView) mRoot.findViewById(R.id.bottom_bar_album_art);
         mBottomBarSongTitle = (TextView) mRoot.findViewById(R.id.bottom_bar_song_title);
         mBottomBarSongArtist = (TextView) mRoot.findViewById(R.id.bottom_bar_artist_title);
-        mPlayPauseProgressButtonBig = (PlayPauseProgressButton) mRoot.findViewById(R.id.button_play_pause_big);
+        mBottomBarPlayPauseButton = (PlayPauseProgressButton) mRoot.findViewById(R.id.bottom_bar_button_play_pause);
+        mBottomSheetPlayPauseButton = (PlayPauseProgressButton) mRoot.findViewById(R.id.bottom_sheet_button_play_pause);
+        mBottomSheet = (ViewGroup) mRoot.findViewById(R.id.bottom_sheet);
+        mBottomSheetSongTitle = (TextView) mRoot.findViewById(R.id.bottom_sheet_song_title);
+        mBottomSheetSongArtist = (TextView) mRoot.findViewById(R.id.bottom_sheet_artist_title);
+        mBottomSheetAlbumArt = (ImageView) mRoot.findViewById(R.id.bottom_sheet_album_art);
+        mBottomSheetVisualizerView = (VisualizerView) mRoot.findViewById(R.id.bottom_sheet_visualizer_view);
+        mBottomSheetSongPlayTime = (TextView) mRoot.findViewById(R.id.bottom_sheet_song_play_time);
+        mBottomSheetSongTimeRemaining = (TextView) mRoot.findViewById(R.id.bottom_sheet_song_time_remaining);
         mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(mBottomSheet);
 
         checkPermission();
 
-        mVisualizerView.initialize(getActivity());
+        mBottomSheetVisualizerView.initialize(getActivity());
         mShowVisualizer = Config.getShowVisualizer(getActivity());
 
         mBottomSheetBehavior.setBottomSheetCallback(new Callback());
@@ -296,6 +294,16 @@ public final class SongListFragment extends Fragment implements
         mPopup.setEnterTransition(popupEnter);
         mPopup.setExitTransition(popupExit);
         mPopup.setElevation(popupElevation);
+    }
+
+    private void checkPermission() {
+        if (getActivity().checkSelfPermission(permission.READ_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { permission.READ_EXTERNAL_STORAGE }, 1);
+        } else {
+            mCanReadExternalStorage = true;
+            setupList();
+        }
     }
 
     private View getThemedPopupContent() {
@@ -325,16 +333,21 @@ public final class SongListFragment extends Fragment implements
         return content;
     }
          
+    private int getLoadingTextColor(boolean error) {
+        int resId = error
+                ? R.attr.colorError : android.R.attr.textColorPrimary;
+        return ThemeUtil.getColorFromThemeAttribute(getActivity(), resId);
+    }
 
     private void initializePlayPauseProgressButtons() {
-        mPlayPauseProgressButtonBig.setMusicPlaybackService(mService);
-        mPlayPauseProgressButtonBig.getPlayPauseButton().setFragment(this);
-        mPlayPauseProgressButtonBig.setEnabled(false);
-        mPlayPauseProgressButtonBig.setOnDraggingListener(this);
-        mPlayPauseProgressButtonSmall.setMusicPlaybackService(mService);
-        mPlayPauseProgressButtonSmall.getPlayPauseButton().setFragment(this);
-        mPlayPauseProgressButtonSmall.setDragEnabled(false);
-        mPlayPauseProgressButtonSmall.setEnabled(false);
+        mBottomBarPlayPauseButton.setMusicPlaybackService(mService);
+        mBottomBarPlayPauseButton.getPlayPauseButton().setFragment(this);
+        mBottomBarPlayPauseButton.setDragEnabled(false);
+        mBottomBarPlayPauseButton.setEnabled(false);
+        mBottomSheetPlayPauseButton.setMusicPlaybackService(mService);
+        mBottomSheetPlayPauseButton.getPlayPauseButton().setFragment(this);
+        mBottomSheetPlayPauseButton.setEnabled(false);
+        mBottomSheetPlayPauseButton.setOnDraggingListener(this);
     }
 
     @Override
@@ -386,7 +399,7 @@ public final class SongListFragment extends Fragment implements
                 }
                 mNewToolbarColor = mVisualizerColor;
                 mStatusBarColor = ThemeUtil.getStatusBarBackgroundColor(mNewToolbarColor);
-                mVisualizerView.setColor(mVisualizerColor);
+                mBottomSheetVisualizerView.setColor(mVisualizerColor);
                 updateContent(song, animate);
                 futureTarget.cancel(false);
             }
@@ -436,7 +449,7 @@ public final class SongListFragment extends Fragment implements
     }
 
     private void updateBottomBar(Song song) {
-        applyBitmap(song, mAlbumArtSmall);
+        applyBitmap(song, mBottomBarAlbumArt);
         mBottomBarSongTitle.setText(song.getTitle());
         mBottomBarSongArtist.setText(song.getArtist());
     }
@@ -453,7 +466,7 @@ public final class SongListFragment extends Fragment implements
         mBottomBarDragHandle.setImageTintList(ColorStateList.valueOf(dragHandleColor));
         mBottomBarSongTitle.setTextColor(primaryTextColor);
         mBottomBarSongArtist.setTextColor(secondaryTextColor);
-        mPlayPauseProgressButtonSmall.setColor(lightTextColor);
+        mBottomBarPlayPauseButton.setColor(lightTextColor);
     }
 
     private void updateBottomSheet(final Song song) {
@@ -462,7 +475,7 @@ public final class SongListFragment extends Fragment implements
             public void run() {
                 mBottomSheetSongTitle.setText(song.getTitle());
                 mBottomSheetSongArtist.setText(song.getArtist());
-                applyBitmap(song, mAlbumArtBig);
+                applyBitmap(song, mBottomSheetAlbumArt);
             }
         });
     }
@@ -474,189 +487,6 @@ public final class SongListFragment extends Fragment implements
             .placeholder(R.drawable.default_artwork)
             .fitCenter()
             .into(iv);
-    }
-
-    private void updateTimes(final int position) {
-        mRoot.post(new Runnable() {
-            @Override
-            public void run() {
-                int secs = 0;
-                int mins = 0;
-
-                secs = position / 1000;
-                secs %= 3600;
-                mins = secs / 60;
-                secs %= 60;
-                String playTime = mins + ":" + (secs < 10 ? "0" + secs : secs);
-
-                secs = mDuration / 1000 - position / 1000;
-                secs %= 3600;
-                mins = secs / 60;
-                secs %= 60;
-                String timeRemaining = "-" + mins + ":" + (secs < 10 ? "0" + secs : secs);
-
-                int resId = mUserIsDragging
-                        ? R.attr.colorAccent : android.R.attr.textColorTertiary;
-                int textColor = ThemeUtil.getColorFromThemeAttribute(getActivity(), resId);
-
-                mSongPlayTime.setTextColor(textColor);
-                mSongTimeRemaining.setTextColor(textColor);
-                mSongPlayTime.setText(playTime);
-                mSongTimeRemaining.setText(timeRemaining);
-            }
-        });
-    }
-
-    private void updateVisualizer() {
-        boolean show = Config.getShowVisualizer(getActivity());
-        if (mShowVisualizer != show) {
-            mShowVisualizer = show;
-            if (mShowVisualizer && mBottomSheetExpanded && mService.isPlaying()) {
-                mVisualizerView.setPlaying(true);
-            } else {
-                mVisualizerView.setPlaying(false);
-            }
-        }
-    }
-
-    @Override
-    public void onSongClicked(Song song, int position) {
-        boolean playNewSong = false;
-        if (mService.isPlaying()) {
-            pause();
-            playNewSong = true;
-        }
-        mService.setSong(song);
-        applyMediaMetadata(song, true);
-        if (playNewSong) {
-            play();
-        }
-    }
-
-    private void checkPermission() {
-        if (getActivity().checkSelfPermission(permission.READ_EXTERNAL_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] { permission.READ_EXTERNAL_STORAGE }, 1);
-        } else {
-            mCanReadExternalStorage = true;
-            setupList();
-        }
-    }
-
-    private int getLoadingTextColor(boolean error) {
-        int resId = error
-                ? R.attr.colorError : android.R.attr.textColorPrimary;
-        return ThemeUtil.getColorFromThemeAttribute(getActivity(), resId);
-    }
-
-    public void play() {
-        mService.play();
-    }
-
-    public void pause() {
-        mService.pause();
-    }
-
-    private void log(String message) {
-        if (DEBUG) {
-            Log.d(TAG, message);
-        }
-    }
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            LocalBinder binder = (LocalBinder) service;
-            mService = binder.getService();
-            initializePlayPauseProgressButtons();
-            mService.setPlaybackInfoListener(mPlaybackListener);
-
-            Song song = mService.getSong();
-            if (song != null) {
-                applyMediaMetadata(song);
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-        }
-    };
-
-    public class Callback extends BottomSheetCallback {
-
-        @Override
-        public void onStateChanged(View bottomSheet, int newState) {
-            switch (newState) {
-                case BottomSheetBehavior.STATE_HIDDEN:
-                    break;
-                case BottomSheetBehavior.STATE_EXPANDED:
-                    mBottomSheetExpanded = true;
-                    break;
-                case BottomSheetBehavior.STATE_COLLAPSED:
-                    mBottomSheetExpanded = false;
-                    break;
-                case BottomSheetBehavior.STATE_DRAGGING:
-                    break;
-                case BottomSheetBehavior.STATE_SETTLING:
-                    break;
-            }
-        }
-
-        @Override
-        public void onSlide(View bottomSheet, float slideOffset) {
-            if (slideOffset >= 0) {
-                if (slideOffset > 0) {
-                    mBottomSheet.setClickable(true);
-                    mBottomSheet.setBackgroundColor(ThemeUtil.getColorFromThemeAttribute(
-                            getActivity(), android.R.attr.colorBackground));
-                    mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.VISIBLE);
-                    mBottomSheetSongTitle.setVisibility(View.VISIBLE);
-                    mBottomSheetSongArtist.setVisibility(View.VISIBLE);
-                    mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.VISIBLE);
-                    if (mPlayPauseProgressButtonSmall.isEnabled()) {
-                        mPlayPauseProgressButtonSmall.setEnabled(false);
-                    }
-                    if (!mPlayPauseProgressButtonBig.isEnabled()) {
-                        mPlayPauseProgressButtonBig.setEnabled(true);
-                    }
-                    updateBottomSheetSongInfoLayout(false);
-                } else {
-                    mBottomSheet.setClickable(false);
-                    mBottomSheet.setBackground(null);
-                    mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.INVISIBLE);
-                    mBottomSheetSongTitle.setVisibility(View.INVISIBLE);
-                    mBottomSheetSongArtist.setVisibility(View.INVISIBLE);
-                    mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.INVISIBLE);
-                    if (!mPlayPauseProgressButtonSmall.isEnabled()) {
-                        mPlayPauseProgressButtonSmall.setEnabled(true);
-                    }
-                    if (mPlayPauseProgressButtonBig.isEnabled()) {
-                        mPlayPauseProgressButtonBig.setEnabled(false);
-                    }
-                    updateBottomSheetSongInfoLayout(true);
-                }
-                if (slideOffset > 0.7 && mUpdateColorsToExpand) {
-                    mUpdateColorsToExpand = false;
-                    mUpdateColorsToCollapse = true;
-                    mUseColorsForExpandedState = true;
-                    updateColors();
-                }
-                if (slideOffset < 0.7 && mUpdateColorsToCollapse) {
-                    mUpdateColorsToExpand = true;
-                    mUpdateColorsToCollapse = false;
-                    mUseColorsForExpandedState = false;
-                    updateColors();
-                }
-                if (slideOffset == 1) {
-                    if (mShowVisualizer && mService.isPlaying()) {
-                        mVisualizerView.setPlaying(true);
-                    }
-                } else {
-                    mVisualizerView.setPlaying(false);
-                }
-            }
-        }
     }
 
     private void updateBottomSheetSongInfoLayout(boolean collapsed) {
@@ -684,7 +514,7 @@ public final class SongListFragment extends Fragment implements
         v.setLayoutParams(params);
     }
 
-    private void updateColors() {
+    private void updateToolbarAndStatusBarColors() {
         MainActivity activity = (MainActivity) getActivity();
         final Window window = activity.getWindow();
         final Toolbar toolbar = activity.getToolbar();
@@ -779,6 +609,173 @@ public final class SongListFragment extends Fragment implements
         animators.start();
     }
 
+    private void updateTimes(final int position) {
+        mRoot.post(new Runnable() {
+            @Override
+            public void run() {
+                int secs = 0;
+                int mins = 0;
+
+                secs = position / 1000;
+                secs %= 3600;
+                mins = secs / 60;
+                secs %= 60;
+                String playTime = mins + ":" + (secs < 10 ? "0" + secs : secs);
+
+                secs = mDuration / 1000 - position / 1000;
+                secs %= 3600;
+                mins = secs / 60;
+                secs %= 60;
+                String timeRemaining = "-" + mins + ":" + (secs < 10 ? "0" + secs : secs);
+
+                int resId = mUserIsDragging
+                        ? R.attr.colorAccent : android.R.attr.textColorTertiary;
+                int textColor = ThemeUtil.getColorFromThemeAttribute(getActivity(), resId);
+
+                mBottomSheetSongPlayTime.setTextColor(textColor);
+                mBottomSheetSongTimeRemaining.setTextColor(textColor);
+                mBottomSheetSongPlayTime.setText(playTime);
+                mBottomSheetSongTimeRemaining.setText(timeRemaining);
+            }
+        });
+    }
+
+    private void updateVisualizer() {
+        boolean show = Config.getShowVisualizer(getActivity());
+        if (mShowVisualizer != show) {
+            mShowVisualizer = show;
+            if (mShowVisualizer && mBottomSheetExpanded && mService.isPlaying()) {
+                mBottomSheetVisualizerView.setPlaying(true);
+            } else {
+                mBottomSheetVisualizerView.setPlaying(false);
+            }
+        }
+    }
+
+    @Override
+    public void onSongClicked(Song song, int position) {
+        boolean playNewSong = false;
+        if (mService.isPlaying()) {
+            pause();
+            playNewSong = true;
+        }
+        mService.setSong(song);
+        applyMediaMetadata(song, true);
+        if (playNewSong) {
+            play();
+        }
+    }
+
+    public void play() {
+        mService.play();
+    }
+
+    public void pause() {
+        mService.pause();
+    }
+
+    private void log(String message) {
+        if (DEBUG) {
+            Log.d(TAG, message);
+        }
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            LocalBinder binder = (LocalBinder) service;
+            mService = binder.getService();
+            initializePlayPauseProgressButtons();
+            mService.setPlaybackInfoListener(mPlaybackListener);
+
+            Song song = mService.getSong();
+            if (song != null) {
+                applyMediaMetadata(song);
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+        }
+    };
+
+    public class Callback extends BottomSheetCallback {
+
+        @Override
+        public void onStateChanged(View bottomSheet, int newState) {
+            switch (newState) {
+                case BottomSheetBehavior.STATE_HIDDEN:
+                    break;
+                case BottomSheetBehavior.STATE_EXPANDED:
+                    mBottomSheetExpanded = true;
+                    break;
+                case BottomSheetBehavior.STATE_COLLAPSED:
+                    mBottomSheetExpanded = false;
+                    break;
+                case BottomSheetBehavior.STATE_DRAGGING:
+                    break;
+                case BottomSheetBehavior.STATE_SETTLING:
+                    break;
+            }
+        }
+
+        @Override
+        public void onSlide(View bottomSheet, float slideOffset) {
+            if (slideOffset >= 0) {
+                if (slideOffset > 0) {
+                    mBottomSheet.setClickable(true);
+                    mBottomSheet.setBackgroundColor(ThemeUtil.getColorFromThemeAttribute(
+                            getActivity(), android.R.attr.colorBackground));
+                    mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.VISIBLE);
+                    mBottomSheetSongTitle.setVisibility(View.VISIBLE);
+                    mBottomSheetSongArtist.setVisibility(View.VISIBLE);
+                    mRoot.findViewById(R.id.bottom_sheet_album_art_frame).setVisibility(View.VISIBLE);
+                    if (mBottomBarPlayPauseButton.isEnabled()) {
+                        mBottomBarPlayPauseButton.setEnabled(false);
+                    }
+                    if (!mBottomSheetPlayPauseButton.isEnabled()) {
+                        mBottomSheetPlayPauseButton.setEnabled(true);
+                    }
+                    updateBottomSheetSongInfoLayout(false);
+                } else {
+                    mBottomSheet.setClickable(false);
+                    mBottomSheet.setBackground(null);
+                    mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.INVISIBLE);
+                    mBottomSheetSongTitle.setVisibility(View.INVISIBLE);
+                    mBottomSheetSongArtist.setVisibility(View.INVISIBLE);
+                    mRoot.findViewById(R.id.bottom_sheet_album_art_frame).setVisibility(View.INVISIBLE);
+                    if (!mBottomBarPlayPauseButton.isEnabled()) {
+                        mBottomBarPlayPauseButton.setEnabled(true);
+                    }
+                    if (mBottomSheetPlayPauseButton.isEnabled()) {
+                        mBottomSheetPlayPauseButton.setEnabled(false);
+                    }
+                    updateBottomSheetSongInfoLayout(true);
+                }
+                if (slideOffset > 0.7 && mUpdateColorsToExpand) {
+                    mUpdateColorsToExpand = false;
+                    mUpdateColorsToCollapse = true;
+                    mUseColorsForExpandedState = true;
+                    updateToolbarAndStatusBarColors();
+                }
+                if (slideOffset < 0.7 && mUpdateColorsToCollapse) {
+                    mUpdateColorsToExpand = true;
+                    mUpdateColorsToCollapse = false;
+                    mUseColorsForExpandedState = false;
+                    updateToolbarAndStatusBarColors();
+                }
+                if (slideOffset == 1) {
+                    if (mShowVisualizer && mService.isPlaying()) {
+                        mBottomSheetVisualizerView.setPlaying(true);
+                    }
+                } else {
+                    mBottomSheetVisualizerView.setPlaying(false);
+                }
+            }
+        }
+    }
+
     public class LoadSongsTask extends AsyncTask<Void, Integer, String> {
         Context context;
         RecyclerView rv;
@@ -850,8 +847,8 @@ public final class SongListFragment extends Fragment implements
 
         @Override
         public void onDurationChanged(int duration) {
-            mPlayPauseProgressButtonBig.updateState();
-            mPlayPauseProgressButtonSmall.updateState();
+            mBottomSheetPlayPauseButton.updateState();
+            mBottomBarPlayPauseButton.updateState();
             mDuration = duration;
             updateTimes(0);
         }
@@ -870,38 +867,37 @@ public final class SongListFragment extends Fragment implements
                     break;
                 case PlaybackInfoListener.State.PREPARED:
                     mBottomBarDragHandle.setImageAlpha(255);
-                    mPlayPauseProgressButtonBig.setEnabled(true);
-                    mPlayPauseProgressButtonSmall.setEnabled(true);
+                    mBottomSheetPlayPauseButton.setEnabled(true);
+                    mBottomBarPlayPauseButton.setEnabled(true);
                     mBottomSheetBehavior.setLocked(false);
                     break;
                 case PlaybackInfoListener.State.PLAYING:
-                    mPlayPauseProgressButtonBig.resume();
-                    mPlayPauseProgressButtonSmall.resume();
+                    mBottomSheetPlayPauseButton.resume();
+                    mBottomBarPlayPauseButton.resume();
                     if (mShowVisualizer && mBottomSheetExpanded) {
-                        mVisualizerView.setPlaying(true);
+                        mBottomSheetVisualizerView.setPlaying(true);
                     }
                     break;
                 case PlaybackInfoListener.State.PAUSED:
-                    mPlayPauseProgressButtonBig.pause();
-                    mPlayPauseProgressButtonSmall.pause();
-                    mVisualizerView.setPlaying(false);
+                    mBottomSheetPlayPauseButton.pause();
+                    mBottomBarPlayPauseButton.pause();
+                    mBottomSheetVisualizerView.setPlaying(false);
                     break;
                 case PlaybackInfoListener.State.COMPLETED:
                     mService.seekTo(0);
-                    mPlayPauseProgressButtonBig.onPlaybackCompleted();
-                    mPlayPauseProgressButtonSmall.onPlaybackCompleted();
+                    mBottomSheetPlayPauseButton.onPlaybackCompleted();
+                    mBottomBarPlayPauseButton.onPlaybackCompleted();
                     mService.pause();
                     updateTimes(0);
                     break;
                 case PlaybackInfoListener.State.RESET:
                     updateTimes(0);
                     mBottomBarDragHandle.setImageAlpha(77);
-                    mPlayPauseProgressButtonBig.setEnabled(false);
-                    mPlayPauseProgressButtonSmall.setEnabled(false);
+                    mBottomSheetPlayPauseButton.setEnabled(false);
+                    mBottomBarPlayPauseButton.setEnabled(false);
                     mBottomSheetBehavior.setLocked(true);
                     break;
             }
-
         }
     }
 }

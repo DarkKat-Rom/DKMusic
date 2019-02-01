@@ -67,7 +67,7 @@
             <ImageView
                 android:id="@+id/bottom_bar_drag_handle"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/bottom_sheet_drag_handle_icon_size"
+                android:layout_height="@dimen/bottom_bar_drag_handle_icon_size"
                 android:layout_gravity="center_horizontal"
                 android:src="@drawable/ic_drag_handle"
                 android:scaleType="centerInside"
@@ -84,9 +84,9 @@
                 android:gravity="center_vertical">
 
                 <ImageView
-                    android:id="@+id/album_art_small"
-                    android:layout_width="@dimen/album_art_small_size"
-                    android:layout_height="@dimen/album_art_small_size"
+                    android:id="@+id/bottom_bar_album_art"
+                    android:layout_width="@dimen/bottom_bar_album_art_size"
+                    android:layout_height="@dimen/bottom_bar_album_art_size"
                     android:src="@drawable/default_artwork"
                     android:scaleType="centerInside" />
 
@@ -95,8 +95,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingStart="@dimen/list_item_song_info_margin_start_end"
-                    android:paddingEnd="@dimen/list_item_song_info_margin_start_end"
+                    android:paddingStart="@dimen/bottom_bar_song_info_margin_start_end"
+                    android:paddingEnd="@dimen/bottom_bar_song_info_margin_start_end"
                     android:orientation="vertical">
 
                     <TextView
@@ -107,7 +107,7 @@
                         android:gravity="center_vertical|start"
                         android:singleLine="true"
                         android:ellipsize="end"
-                        android:textSize="@dimen/bottom_sheet_song_title_text_size"
+                        android:textSize="@dimen/bottom_bar_song_title_text_size"
                         android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
                     <TextView
@@ -118,16 +118,16 @@
                         android:gravity="center_vertical|start"
                         android:singleLine="true"
                         android:ellipsize="end"
-                        android:textSize="@dimen/bottom_sheet_artist_title_text_size"
+                        android:textSize="@dimen/bottom_bar_artist_title_text_size"
                         android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
                 </LinearLayout>
 
                 <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
-                    android:id="@+id/button_play_pause_small"
-                    android:layout_width="@dimen/album_art_small_size"
-                    android:layout_height="@dimen/album_art_small_size"
-                    android:layout_marginEnd="@dimen/button_play_pause_small_margin_end">
+                    android:id="@+id/bottom_bar_button_play_pause"
+                    android:layout_width="@dimen/bottom_bar_album_art_size"
+                    android:layout_height="@dimen/bottom_bar_album_art_size"
+                    android:layout_marginEnd="@dimen/bottom_bar_button_play_pause_margin_end">
 
                     <net.darkkatrom.dkmusic.widgets.PlayPauseButton
                         android:id="@+id/action_button_play"

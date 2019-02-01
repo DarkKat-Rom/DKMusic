@@ -24,8 +24,8 @@
 
     <ImageView
         android:id="@+id/list_item_album_art_small"
-        android:layout_width="@dimen/album_art_small_size"
-        android:layout_height="@dimen/album_art_small_size"
+        android:layout_width="@dimen/list_item_album_art_size"
+        android:layout_height="@dimen/list_item_album_art_size"
         android:layout_marginStart="@dimen/list_item_album_art_margin_start"
         android:src="@drawable/default_artwork"
         android:scaleType="centerInside" />

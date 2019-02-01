@@ -17,8 +17,6 @@
 
     <!-- General -->
     <dimen name="toolbar_elevation">4dp</dimen>
-    <dimen name="album_art_small_size">48dp</dimen>
-    <dimen name="album_art_big_size">300dp</dimen>
 
     <!-- Main content -->
 
@@ -43,14 +41,20 @@
 
     <!-- Bottom bar -->
     <dimen name="bottom_bar_height">64dp</dimen>
+    <dimen name="bottom_bar_drag_handle_icon_size">24dp</dimen>
     <dimen name="bottom_bar_padding_start">8dp</dimen>
     <dimen name="bottom_bar_padding_top_bottom">8dp</dimen>
     <dimen name="bottom_bar_padding_end">16dp</dimen>
-    <dimen name="button_play_pause_small_margin_end">10dp</dimen>
+    <dimen name="bottom_bar_album_art_size">48dp</dimen>
+    <dimen name="bottom_bar_song_info_margin_start_end">16dp</dimen>
+    <dimen name="bottom_bar_song_title_text_size">16sp</dimen>
+    <dimen name="bottom_bar_artist_title_text_size">12sp</dimen>
+    <dimen name="bottom_bar_button_play_pause_margin_end">10dp</dimen>
 
     <!-- List item -->
     <dimen name="list_item_height">64dp</dimen>
     <dimen name="list_item_margin_top">8dp</dimen>
+    <dimen name="list_item_album_art_size">48dp</dimen>
     <dimen name="list_item_album_art_margin_start">8dp</dimen>
     <dimen name="list_item_song_info_margin_start_end">16dp</dimen>
     <dimen name="list_item_song_title_text_size">16sp</dimen>
@@ -69,10 +73,11 @@
     <dimen name="bottom_sheet_song_title_margin_bottom">4dp</dimen>
     <dimen name="bottom_sheet_song_title_text_size">16sp</dimen>
     <dimen name="bottom_sheet_artist_title_text_size">12sp</dimen>
-    <dimen name="bottom_sheet_album_art_big_frame_margin">16dp</dimen>
+    <dimen name="bottom_sheet_album_art_frame_margin">16dp</dimen>
+    <dimen name="bottom_sheet_album_art_size">300dp</dimen>
     <dimen name="bottom_sheet_music_control_margin_start_end">16dp</dimen>
     <dimen name="bottom_sheet_music_control_margin_top">16dp</dimen>
     <dimen name="bottom_sheet_song_playtime_margin_end">32dp</dimen>
-    <dimen name="bottom_sheet_button_play_pause_big_size">96dp</dimen>
+    <dimen name="bottom_sheet_button_play_pause_size">96dp</dimen>
     <dimen name="bottom_sheet_song_time_remaining_margin_start">32dp</dimen>
 </resources>
