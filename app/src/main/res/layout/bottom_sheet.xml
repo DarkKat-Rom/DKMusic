@@ -23,14 +23,17 @@
     android:layout_height="match_parent"
     android:tag="portrait"
     android:orientation="vertical"
+    android:elevation="4dp"
     app:behavior_peekHeight="@dimen/bottom_sheet_peek_height"
     app:layout_behavior="net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior">
 
     <FrameLayout
+        android:id="@+id/bottom_sheet_drag_handle_frame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:background="?attr/colorBackgroundFloating">
+        android:background="?attr/colorBackgroundFloating"
+        android:visibility="invisible">
 
         <ImageView
             android:id="@+id/bottom_sheet_drag_handle"
@@ -38,8 +41,7 @@
             android:layout_height="@dimen/bottom_sheet_drag_handle_icon_size"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/ic_drag_handle"
-            android:scaleType="centerInside"
-            android:alpha="0.3" />
+            android:scaleType="centerInside" />
 
         <View
             android:layout_width="match_parent"
@@ -60,7 +62,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/song_title"
+            android:id="@+id/bottom_sheet_song_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/bottom_sheet_song_title_margin_bottom"
@@ -69,10 +71,11 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:textSize="@dimen/bottom_sheet_song_title_text_size"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:visibility="invisible" />
 
         <TextView
-            android:id="@+id/artist_title"
+            android:id="@+id/bottom_sheet_artist_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -80,7 +83,9 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:textSize="@dimen/bottom_sheet_artist_title_text_size"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:visibility="invisible" />
+
     </LinearLayout>
 
     <FrameLayout
@@ -88,7 +93,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/bottom_sheet_album_art_big_frame_margin"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:layout_gravity="center_horizontal">
 
         <ImageView
@@ -137,7 +142,8 @@
                 android:layout_gravity="center"
                 android:focusable="true"
                 android:scaleType="centerCrop"
-                android:src="@drawable/ic_action_play" />
+                android:src="@drawable/ic_action_play"
+                android:background="@drawable/play_pause_button_background" />
 
             <ProgressBar
                 android:id="@+id/progressBarBackground"

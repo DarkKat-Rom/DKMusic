@@ -14,7 +14,7 @@
      limitations under the License.
 -->
 <resources>
-
+    <attr name="playPauseButtonRippleColor" format="reference" />
     <attr name="circularProgressBarColor" format="reference" />
     <attr name="circularProgressBarBackgroundColor" format="reference" />
 </resources>

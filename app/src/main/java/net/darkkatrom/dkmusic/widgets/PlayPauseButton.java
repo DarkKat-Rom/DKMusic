@@ -46,7 +46,6 @@ public class PlayPauseButton extends ImageButton implements OnClickListener {
     @SuppressWarnings("deprecation")
     public PlayPauseButton(final Context context, final AttributeSet attrs) {
         super(context, attrs);
-        setBackgroundResource(R.drawable.selectable_background);
         // Control playback (play/pause)
         setOnClickListener(this);
     }

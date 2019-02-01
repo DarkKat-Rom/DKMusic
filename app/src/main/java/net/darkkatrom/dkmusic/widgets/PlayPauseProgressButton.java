@@ -18,6 +18,8 @@
 package net.darkkatrom.dkmusic.widgets;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.RippleDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -44,6 +46,7 @@ public class PlayPauseProgressButton extends FrameLayout {
     public static final long UPDATE_FREQUENCY_MS = 500;
     public static final long UPDATE_FREQUENCY_FAST_MS = 30;
 
+    private ProgressBar mProgressBarBackground;
     private ProgressBar mProgressBar;
     private PlayPauseButton mPlayPauseButton;
     private Runnable mUpdateProgress;
@@ -84,6 +87,7 @@ public class PlayPauseProgressButton extends FrameLayout {
         super.onFinishInflate();
 
         mPlayPauseButton = (PlayPauseButton)findViewById(R.id.action_button_play);
+        mProgressBarBackground = (ProgressBar)findViewById(R.id.progressBarBackground);
         mProgressBar = (ProgressBar)findViewById(R.id.circularProgressBar);
     }
 
@@ -426,5 +430,20 @@ public class PlayPauseProgressButton extends FrameLayout {
 
     public void setOnDraggingListener(OnDraggingListener listener) {
         mOnDraggingListener = listener;
+    }
+
+    public void setColor(boolean light) {
+        ColorStateList progressTint = ColorStateList.valueOf(getContext().getColor(light
+                ? R.color.circular_progress_bar_light : R.color.circular_progress_bar));
+        ColorStateList rippleColor = ColorStateList.valueOf(getContext().getColor(light
+                ? R.color.play_pause_button_ripple_color_light
+                : R.color.play_pause_button_ripple_color_dark));
+        ColorStateList iconTint = ColorStateList.valueOf(getContext().getColor(light
+                ? R.color.secondary_text_default_material_light
+                : R.color.secondary_text_default_material_dark));
+        mProgressBarBackground.getProgressDrawable().mutate().setTintList(progressTint);
+        mProgressBar.getProgressDrawable().mutate().setTintList(progressTint);
+        ((RippleDrawable) mPlayPauseButton.getBackground()).setColor(rippleColor);
+        mPlayPauseButton.setImageTintList(iconTint);
     }
 }

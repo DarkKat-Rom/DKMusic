@@ -23,10 +23,11 @@
         <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="android:colorBackground">@color/darkkat_blue_grey</item>
         <item name="colorBackgroundFloating">@color/darkkat_blue_blue_grey</item>
-        <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
-        <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
+        <item name="playPauseButtonRippleColor">@color/play_pause_button_ripple_color_dark</item>
         <item name="circularProgressBarColor">@color/circular_progress_bar</item>
         <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background</item>
+        <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
+        <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
     </style>
 
     <!-- App theme Dark -->
@@ -35,6 +36,7 @@
         <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
         <item name="colorAccent">@color/accent_theme</item>
         <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="playPauseButtonRippleColor">@color/play_pause_button_ripple_color_dark</item>
         <item name="circularProgressBarColor">@color/circular_progress_bar</item>
         <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background</item>
     </style>
@@ -45,6 +47,7 @@
         <item name="colorPrimaryDark">@color/primary_dark_theme_dark</item>
         <item name="colorAccent">@color/accent_theme</item>
         <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="playPauseButtonRippleColor">@color/play_pause_button_ripple_color_light</item>
         <item name="circularProgressBarColor">@color/circular_progress_bar_light</item>
         <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background_light</item>
     </style>

@@ -50,4 +50,8 @@ public class ThemeUtil {
     public static int getStatusBarBackgroundColor(int actionBarColor) {
         return ColorHelper.compositeColors(STATUS_BAR_DARKEN_COLOR, actionBarColor);
     }
+
+    public static int getDragHandleBgColor(int bottomBarBgColor) {
+        return ColorHelper.compositeColors(STATUS_BAR_DARKEN_COLOR, bottomBarBgColor);
+    }
 }

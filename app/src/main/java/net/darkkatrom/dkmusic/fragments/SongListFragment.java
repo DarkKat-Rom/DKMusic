@@ -47,6 +47,7 @@ import android.support.v7.widget.Toolbar;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
 import android.util.Log;
+import android.view.animation.Animation;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -54,6 +55,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
@@ -99,14 +101,18 @@ public final class SongListFragment extends Fragment implements
     private RecyclerView mList;
     private ViewGroup mBottomSheet;
     private View mBottomBar;
+    private ImageView mBottomBarDragHandle;
+    private View mBottomBarContent;
     private ImageView mAlbumArtSmall;
     private PlayPauseProgressButton mPlayPauseProgressButtonSmall;
     private ImageView mAlbumArtBig;
     private VisualizerView mVisualizerView;
     private TextView mSongPlayTime;
     private TextView mSongTimeRemaining;
-    private TextView mTitle;
-    private TextView mArtist;
+    private TextView mBottomSheetSongTitle;
+    private TextView mBottomSheetSongArtist;
+    private TextView mBottomBarSongTitle;
+    private TextView mBottomBarSongArtist;
     private PlayPauseProgressButton mPlayPauseProgressButtonBig;
 
     private MenuItem mMenuItemMore;
@@ -140,6 +146,8 @@ public final class SongListFragment extends Fragment implements
     private int mToolbarTextColor;
     private int mDefaultStatusBarColor;
     private int mStatusBarColor;
+    private int mDefaultBottomBarBgColor;
+    private int mBottomBarBgColor;
 
     private MusicPlaybackService mService;
 
@@ -160,6 +168,8 @@ public final class SongListFragment extends Fragment implements
         mToolbarTextColor = mOldToolbarTextColor;
         mDefaultStatusBarColor =
                 ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorPrimaryDark);
+        mDefaultBottomBarBgColor =
+                ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorBackgroundFloating);
 
         mPlaybackListener = new PlaybackListener();
 
@@ -249,14 +259,18 @@ public final class SongListFragment extends Fragment implements
         mList = (RecyclerView) mRoot.findViewById(R.id.list);
         mBottomSheet = (ViewGroup) mRoot.findViewById(R.id.bottom_sheet);
         mBottomBar = mRoot.findViewById(R.id.bottom_bar);
+        mBottomBarDragHandle = (ImageView) mRoot.findViewById(R.id.bottom_bar_drag_handle);
+        mBottomBarContent = mRoot.findViewById(R.id.bottom_bar_content);
         mAlbumArtSmall = (ImageView) mRoot.findViewById(R.id.album_art_small);
         mPlayPauseProgressButtonSmall = (PlayPauseProgressButton) mRoot.findViewById(R.id.button_play_pause_small);
         mAlbumArtBig = (ImageView) mRoot.findViewById(R.id.album_art_big);
         mVisualizerView = (VisualizerView) mRoot.findViewById(R.id.visualizerView);
         mSongPlayTime = (TextView) mRoot.findViewById(R.id.song_play_time);
         mSongTimeRemaining = (TextView) mRoot.findViewById(R.id.song_time_remaining);
-        mTitle = (TextView) mRoot.findViewById(R.id.song_title);
-        mArtist = (TextView) mRoot.findViewById(R.id.artist_title);
+        mBottomSheetSongTitle = (TextView) mRoot.findViewById(R.id.bottom_sheet_song_title);
+        mBottomSheetSongArtist = (TextView) mRoot.findViewById(R.id.bottom_sheet_artist_title);
+        mBottomBarSongTitle = (TextView) mRoot.findViewById(R.id.bottom_bar_song_title);
+        mBottomBarSongArtist = (TextView) mRoot.findViewById(R.id.bottom_bar_artist_title);
         mPlayPauseProgressButtonBig = (PlayPauseProgressButton) mRoot.findViewById(R.id.button_play_pause_big);
         mBottomSheetBehavior = (LockableBottomSheetBehavior) LockableBottomSheetBehavior.from(mBottomSheet);
 
@@ -345,23 +359,11 @@ public final class SongListFragment extends Fragment implements
         task.execute();
     }
 
-    private void applyMediaMetadata(final Song song) {
-        GlideApp.with(this)
-            .asBitmap()
-            .load(song.getAlbumArtUri())
-            .placeholder(R.drawable.default_artwork)
-            .fitCenter()
-            .into(mAlbumArtSmall);
-        mTitle.setText(song.getTitle());
-        mArtist.setText(song.getArtist());
+    private void applyMediaMetadata(Song song) {
+        applyMediaMetadata(song, false);
+    }
 
-        GlideApp.with(this)
-            .asBitmap()
-            .load(song.getAlbumArtUri())
-            .placeholder(R.drawable.default_artwork)
-            .fitCenter()
-            .into(mAlbumArtBig);
-     
+    private void applyMediaMetadata(final Song song, final boolean animate) {
         AsyncTask.execute(new Runnable() {
            @Override
            public void run() {
@@ -375,17 +377,103 @@ public final class SongListFragment extends Fragment implements
                     Bitmap bitmap = futureTarget.get();
                     BitmapPaletteUtil colors = new BitmapPaletteUtil(bitmap);
                     mVisualizerColor = colors.getContrastingColor();
+                    mBottomBarBgColor = mVisualizerColor;
                     mService.setAlbumArt(bitmap);
                     colors = null;
                 } catch (ExecutionException | InterruptedException e) {
                     mVisualizerColor = mDefaultVisualizerColor;
+                    mBottomBarBgColor = mDefaultBottomBarBgColor;
                 }
                 mNewToolbarColor = mVisualizerColor;
                 mStatusBarColor = ThemeUtil.getStatusBarBackgroundColor(mNewToolbarColor);
                 mVisualizerView.setColor(mVisualizerColor);
+                updateContent(song, animate);
                 futureTarget.cancel(false);
             }
         });
+    }
+
+    private void updateContent(final Song song, boolean animate) {
+        if (animate) {
+            final int centerX = mBottomBar.getWidth();
+            final int centerY = mBottomBar.getHeight();
+            final int startRadius = 0;
+            final int endRadius =
+                    (int) Math.hypot(mBottomBar.getWidth(), mBottomBar.getHeight());
+
+            Animator animHide = ViewAnimationUtils.createCircularReveal(
+                    mBottomBar, centerX, centerY, endRadius, startRadius);
+            final Animator animShow = ViewAnimationUtils.createCircularReveal(
+                    mBottomBar, centerX, centerY, startRadius, endRadius);
+
+            animHide.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    mBottomBar.setVisibility(View.INVISIBLE);
+                    updateBottomBar(song);
+                    updateBottomBarColors();
+                    mBottomBar.setVisibility(View.VISIBLE);
+                    animShow.start();
+                }
+            });
+
+            animHide.setDuration(195);
+            animHide.setInterpolator(new ValueAnimator().getInterpolator());
+            animShow.setDuration(225);
+            animShow.setInterpolator(new ValueAnimator().getInterpolator());
+            animHide.start();
+        } else {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateBottomBar(song);
+                    updateBottomBarColors();
+                }
+            });
+        }
+        updateBottomSheet(song);
+    }
+
+    private void updateBottomBar(Song song) {
+        applyBitmap(song, mAlbumArtSmall);
+        mBottomBarSongTitle.setText(song.getTitle());
+        mBottomBarSongArtist.setText(song.getArtist());
+    }
+
+    private void updateBottomBarColors() {
+        int draghandleBgColor = ThemeUtil.getDragHandleBgColor(mBottomBarBgColor);
+        boolean lightDragHandleColor = !ColorHelper.isColorDark(draghandleBgColor);
+        boolean lightTextColor = !ColorHelper.isColorDark(mBottomBarBgColor);
+        int dragHandleColor =  lightDragHandleColor ? mSecondaryTextColorLight : mSecondaryTextColorDark;
+        int primaryTextColor = lightTextColor ? mPrimaryTextColorLight : mPrimaryTextColorDark;
+        int secondaryTextColor = lightTextColor ? mSecondaryTextColorLight : mSecondaryTextColorDark;
+
+        mBottomBar.setBackgroundColor(mBottomBarBgColor);
+        mBottomBarDragHandle.setImageTintList(ColorStateList.valueOf(dragHandleColor));
+        mBottomBarSongTitle.setTextColor(primaryTextColor);
+        mBottomBarSongArtist.setTextColor(secondaryTextColor);
+        mPlayPauseProgressButtonSmall.setColor(lightTextColor);
+    }
+
+    private void updateBottomSheet(final Song song) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBottomSheetSongTitle.setText(song.getTitle());
+                mBottomSheetSongArtist.setText(song.getArtist());
+                applyBitmap(song, mAlbumArtBig);
+            }
+        });
+    }
+
+    private void applyBitmap(final Song song, ImageView iv) {
+        GlideApp.with(SongListFragment.this)
+            .asBitmap()
+            .load(song.getAlbumArtUri())
+            .placeholder(R.drawable.default_artwork)
+            .fitCenter()
+            .into(iv);
     }
 
     private void updateTimes(final int position) {
@@ -439,7 +527,7 @@ public final class SongListFragment extends Fragment implements
             playNewSong = true;
         }
         mService.setSong(song);
-        applyMediaMetadata(song);
+        applyMediaMetadata(song, true);
         if (playNewSong) {
             play();
         }
@@ -522,6 +610,9 @@ public final class SongListFragment extends Fragment implements
                     mBottomSheet.setClickable(true);
                     mBottomSheet.setBackgroundColor(ThemeUtil.getColorFromThemeAttribute(
                             getActivity(), android.R.attr.colorBackground));
+                    mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.VISIBLE);
+                    mBottomSheetSongTitle.setVisibility(View.VISIBLE);
+                    mBottomSheetSongArtist.setVisibility(View.VISIBLE);
                     mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.VISIBLE);
                     if (mPlayPauseProgressButtonSmall.isEnabled()) {
                         mPlayPauseProgressButtonSmall.setEnabled(false);
@@ -533,7 +624,10 @@ public final class SongListFragment extends Fragment implements
                 } else {
                     mBottomSheet.setClickable(false);
                     mBottomSheet.setBackground(null);
-                    mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.GONE);
+                    mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.INVISIBLE);
+                    mBottomSheetSongTitle.setVisibility(View.INVISIBLE);
+                    mBottomSheetSongArtist.setVisibility(View.INVISIBLE);
+                    mRoot.findViewById(R.id.album_art_big_frame).setVisibility(View.INVISIBLE);
                     if (!mPlayPauseProgressButtonSmall.isEnabled()) {
                         mPlayPauseProgressButtonSmall.setEnabled(true);
                     }
@@ -775,7 +869,7 @@ public final class SongListFragment extends Fragment implements
                 case PlaybackInfoListener.State.INVALID:
                     break;
                 case PlaybackInfoListener.State.PREPARED:
-                    mRoot.findViewById(R.id.bottom_sheet_drag_handle).setAlpha(1);
+                    mBottomBarDragHandle.setImageAlpha(255);
                     mPlayPauseProgressButtonBig.setEnabled(true);
                     mPlayPauseProgressButtonSmall.setEnabled(true);
                     mBottomSheetBehavior.setLocked(false);
@@ -801,7 +895,7 @@ public final class SongListFragment extends Fragment implements
                     break;
                 case PlaybackInfoListener.State.RESET:
                     updateTimes(0);
-                    mRoot.findViewById(R.id.bottom_sheet_drag_handle).setAlpha(0.3f);
+                    mBottomBarDragHandle.setImageAlpha(77);
                     mPlayPauseProgressButtonBig.setEnabled(false);
                     mPlayPauseProgressButtonSmall.setEnabled(false);
                     mBottomSheetBehavior.setLocked(true);
