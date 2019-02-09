@@ -32,7 +32,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:background="?attr/colorBackgroundFloating"
         android:visibility="invisible">
 
         <ImageView
@@ -43,138 +42,106 @@
             android:src="@drawable/ic_drag_handle"
             android:scaleType="centerInside" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="@dimen/bottom_sheet_drag_handle_icon_size"
-            android:background="?attr/colorControlHighlight" />
-
     </FrameLayout>
 
-    <LinearLayout
-        android:id="@+id/bottom_sheet_song_info_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/bottom_sheet_song_info_height"
-        android:layout_gravity="start"
-        android:paddingStart="@dimen/bottom_sheet_collapsed_song_info_padding_start"
-        android:paddingEnd="@dimen/bottom_sheet_collapsed_song_info_padding_end"
-        android:gravity="center_vertical|start"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/bottom_sheet_song_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/bottom_sheet_song_title_margin_bottom"
-            android:layout_gravity="center_vertical"
-            android:gravity="center_vertical|start"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:textSize="@dimen/bottom_sheet_song_title_text_size"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:visibility="invisible" />
-
-        <TextView
-            android:id="@+id/bottom_sheet_artist_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:gravity="center_vertical|start"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:textSize="@dimen/bottom_sheet_artist_title_text_size"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            android:visibility="invisible" />
-
-    </LinearLayout>
-
-    <FrameLayout
+    <RelativeLayout
         android:id="@+id/bottom_sheet_album_art_frame"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/bottom_sheet_album_art_frame_margin"
-        android:visibility="invisible"
-        android:layout_gravity="center_horizontal">
+        android:visibility="invisible">
 
         <ImageView
             android:id="@+id/bottom_sheet_album_art"
-            android:layout_width="@dimen/bottom_sheet_album_art_size"
-            android:layout_height="@dimen/bottom_sheet_album_art_size"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:src="@drawable/default_artwork"
-            android:scaleType="centerInside" />
+            android:scaleType="centerInside"
+            android:adjustViewBounds="true" />
 
         <net.darkkatrom.dkmusic.widgets.VisualizerView
             android:id="@+id/bottom_sheet_visualizer_view"
-            android:layout_width="@dimen/bottom_sheet_album_art_size"
-            android:layout_height="@dimen/bottom_sheet_album_art_size"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_gravity="bottom"
+            android:layout_alignTop="@id/bottom_sheet_album_art"
+            android:layout_alignBottom="@id/bottom_sheet_album_art"
             android:gravity="bottom"
             android:visibility="visible" />
 
-    </FrameLayout>
+    </RelativeLayout>
 
-    <LinearLayout
+    <android.support.v7.widget.CardView
+        android:id="@+id/bottom_sheet_music_control_card"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/bottom_sheet_music_control_margin_start_end"
-        android:layout_marginTop="@dimen/bottom_sheet_music_control_margin_top"
-        android:layout_marginEnd="@dimen/bottom_sheet_music_control_margin_start_end"
-        android:gravity="center">
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/bottom_sheet_music_control_card_margin"
+        app:cardCornerRadius="@dimen/bottom_sheet_music_control_card_corner_radius"
+        app:cardElevation="@dimen/bottom_sheet_music_control_card_elevation">
 
-        <TextView
-            android:id="@+id/bottom_sheet_song_play_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginEnd="@dimen/bottom_sheet_song_playtime_margin_end"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+        <LinearLayout
+            android:id="@+id/bottom_sheet_music_control_card_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="@dimen/bottom_sheet_music_control_margin_start_end"
+            android:paddingTop="@dimen/bottom_sheet_music_control_margin_top"
+            android:paddingEnd="@dimen/bottom_sheet_music_control_margin_start_end"
+            android:gravity="center">
 
-        <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
-            android:id="@+id/bottom_sheet_button_play_pause"
-            android:layout_width="@dimen/bottom_sheet_button_play_pause_size"
-            android:layout_height="@dimen/bottom_sheet_button_play_pause_size"
-            android:layout_gravity="center_horizontal">
-
-            <net.darkkatrom.dkmusic.widgets.PlayPauseButton
-                android:id="@+id/action_button_play"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+            <TextView
+                android:id="@+id/bottom_sheet_song_play_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_action_play"
-                android:background="@drawable/play_pause_button_background" />
+                android:layout_marginEnd="@dimen/bottom_sheet_song_playtime_margin_end"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
-            <ProgressBar
-                android:id="@+id/progressBarBackground"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clickable="false"
-                android:indeterminate="false"
-                android:max="1000"
-                android:progress="1000"
-                android:progressDrawable="@drawable/circular_drawable_background" />
+            <net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton
+                android:id="@+id/bottom_sheet_button_play_pause"
+                android:layout_width="@dimen/bottom_sheet_button_play_pause_size"
+                android:layout_height="@dimen/bottom_sheet_button_play_pause_size"
+                android:layout_gravity="center">
 
-            <ProgressBar
-                android:id="@+id/circularProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clickable="false"
-                android:indeterminate="false"
-                android:max="1000"
-                android:progressDrawable="@drawable/circular_drawable" />
+                <net.darkkatrom.dkmusic.widgets.PlayPauseButton
+                    android:id="@+id/action_button_play"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:focusable="true"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_action_play"
+                    android:background="@drawable/play_pause_button_background" />
 
-        </net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton>
+                <ProgressBar
+                    android:id="@+id/progressBarBackground"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:indeterminate="false"
+                    android:max="1000"
+                    android:progress="1000"
+                    android:progressDrawable="@drawable/circular_drawable_background" />
 
-        <TextView
-            android:id="@+id/bottom_sheet_song_time_remaining"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/bottom_sheet_song_time_remaining_margin_start"
-            android:layout_gravity="center"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+                <ProgressBar
+                    android:id="@+id/circularProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:indeterminate="false"
+                    android:max="1000"
+                    android:progressDrawable="@drawable/circular_drawable" />
 
-    </LinearLayout>
+            </net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton>
+
+            <TextView
+                android:id="@+id/bottom_sheet_song_time_remaining"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/bottom_sheet_song_time_remaining_margin_start"
+                android:layout_gravity="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
 </LinearLayout>

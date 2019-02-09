@@ -33,6 +33,7 @@ import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -42,6 +43,7 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetBehavior.BottomSheetCallback;
 import android.support.v4.app.Fragment;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.transition.Transition;
@@ -64,16 +66,23 @@ import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.request.FutureTarget;
+import com.bumptech.glide.request.RequestOptions;
+
+import jp.wasabeef.glide.transformations.BlurTransformation;
+import jp.wasabeef.glide.transformations.ColorFilterTransformation;
+import jp.wasabeef.glide.transformations.CropTransformation;
+import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
 
 import net.darkkatrom.dkmusic.MusicPlaybackService;
 import net.darkkatrom.dkmusic.MusicPlaybackService.LocalBinder;
-import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.GlideApp;
+import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.activities.MainActivity;
 import net.darkkatrom.dkmusic.activities.SettingsActivity;
 import net.darkkatrom.dkmusic.adapters.SongAdapter;
-import net.darkkatrom.dkmusic.holders.SongInfoHolder;
+import net.darkkatrom.dkmusic.glideTargets.BitmapHolderTarget;
+import net.darkkatrom.dkmusic.glideTargets.DrawableViewBackgroundTarget;
+import net.darkkatrom.dkmusic.interfaces.BitmapHolder;
 import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
 import net.darkkatrom.dkmusic.models.Song;
 import net.darkkatrom.dkmusic.utils.BitmapPaletteUtil;
@@ -84,12 +93,10 @@ import net.darkkatrom.dkmusic.widgets.LockableBottomSheetBehavior;
 import net.darkkatrom.dkmusic.widgets.PlayPauseProgressButton;
 import net.darkkatrom.dkmusic.widgets.VisualizerView;
 
-import java.lang.InterruptedException;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.List;
 
-public final class SongListFragment extends Fragment implements
+public final class SongListFragment extends Fragment implements BitmapHolder,
         SongAdapter.OnSongClickedListener, PlayPauseProgressButton.OnDraggingListener {
 
     public static final String TAG = "DKMusic/SongListFragment";
@@ -121,6 +128,7 @@ public final class SongListFragment extends Fragment implements
     private List<Song> mSongs;
     private MusicPlaybackService mService;
     private PlaybackListener mPlaybackListener;
+    private Song mCurrentSong;
 
     private boolean mCanReadExternalStorage = false;
 
@@ -129,6 +137,7 @@ public final class SongListFragment extends Fragment implements
     private boolean mShowVisualizer;
     private boolean mBottomSheetExpanded = false;
 
+    private boolean mUpdateBottomSheetToExpand = true;
     private boolean mUseColorsForExpandedState = true;
     private boolean mUpdateColorsToExpand = true;
     private boolean mUpdateColorsToCollapse = false;
@@ -144,8 +153,11 @@ public final class SongListFragment extends Fragment implements
     private int mSecondaryTextColorLight;
     private int mPrimaryTextColorDark;
     private int mSecondaryTextColorDark;
-    private int mOldToolbarTextColor;
-    private int mToolbarTextColor;
+    private int mOldToolbarTitleTextColor;
+    private int mToolbarTitleTextColor;
+    private int mOldToolbarSubtitleTextColor;
+    private int mToolbarSubtitleTextColor;
+
     private int mDefaultStatusBarColor;
     private int mStatusBarColor;
     private int mDefaultBottomBarBgColor;
@@ -162,13 +174,14 @@ public final class SongListFragment extends Fragment implements
         mSecondaryTextColorLight = getActivity().getColor(R.color.secondary_text_default_material_light);
         mPrimaryTextColorDark = getActivity().getColor(R.color.primary_text_default_material_dark);
         mSecondaryTextColorDark = getActivity().getColor(R.color.secondary_text_default_material_dark);
-        mOldToolbarTextColor = mPrimaryTextColorDark;
-        mToolbarTextColor = mOldToolbarTextColor;
+        mOldToolbarTitleTextColor = mPrimaryTextColorDark;
+        mToolbarTitleTextColor = mOldToolbarTitleTextColor;
+        mOldToolbarSubtitleTextColor = mPrimaryTextColorDark;
+        mToolbarSubtitleTextColor = mOldToolbarSubtitleTextColor;
         mDefaultStatusBarColor =
                 ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorPrimaryDark);
         mDefaultBottomBarBgColor =
                 ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorBackgroundFloating);
-
         mPlaybackListener = new PlaybackListener();
 
         setHasOptionsMenu(true);
@@ -207,6 +220,7 @@ public final class SongListFragment extends Fragment implements
         Intent musicIntent = new Intent(getActivity(), MusicPlaybackService.class);
         getActivity().startService(musicIntent);
         getActivity().bindService(musicIntent, mConnection, Context.BIND_AUTO_CREATE);
+        updateVisualizer();
     }
 
     @Override
@@ -372,41 +386,39 @@ public final class SongListFragment extends Fragment implements
         task.execute();
     }
 
-    private void applyMediaMetadata(Song song) {
-        applyMediaMetadata(song, false);
+    private void applyMediaMetadata() {
+        applyMediaMetadata(false);
     }
 
-    private void applyMediaMetadata(final Song song, final boolean animate) {
-        AsyncTask.execute(new Runnable() {
-           @Override
-           public void run() {
-                FutureTarget<Bitmap> futureTarget = GlideApp
-                    .with(SongListFragment.this)
-                    .asBitmap()
-                    .load(song.getAlbumArtUri())
-                    .submit();
-
-                try {
-                    Bitmap bitmap = futureTarget.get();
-                    BitmapPaletteUtil colors = new BitmapPaletteUtil(bitmap);
-                    mVisualizerColor = colors.getContrastingColor();
-                    mBottomBarBgColor = mVisualizerColor;
-                    mService.setAlbumArt(bitmap);
-                    colors = null;
-                } catch (ExecutionException | InterruptedException e) {
-                    mVisualizerColor = mDefaultVisualizerColor;
-                    mBottomBarBgColor = mDefaultBottomBarBgColor;
-                }
-                mNewToolbarColor = mVisualizerColor;
-                mStatusBarColor = ThemeUtil.getStatusBarBackgroundColor(mNewToolbarColor);
-                mBottomSheetVisualizerView.setColor(mVisualizerColor);
-                updateContent(song, animate);
-                futureTarget.cancel(false);
-            }
-        });
+    private void applyMediaMetadata(final boolean animate) {
+        // First load the original sized album art image,
+        // Once it's done or failed, 'setBitmap' will be called
+        GlideApp.with(SongListFragment.this)
+            .asBitmap()
+            .load(mCurrentSong.getAlbumArtUri())
+            .into(new BitmapHolderTarget(this, animate));
     }
 
-    private void updateContent(final Song song, boolean animate) {
+    @Override
+    public void setBitmap(Bitmap bitmap, boolean animate) {
+        mService.setAlbumArt(bitmap);
+        boolean useContrastingColor = false;
+        int contrastingColor = 0;
+        if (bitmap != null) {
+            BitmapPaletteUtil colors = new BitmapPaletteUtil(bitmap);
+            contrastingColor = colors.getContrastingColor();
+            useContrastingColor = true;
+            colors = null;
+        }
+        mVisualizerColor = useContrastingColor ? contrastingColor : mDefaultVisualizerColor;
+        mBottomBarBgColor = useContrastingColor ? contrastingColor : mDefaultBottomBarBgColor;
+        mNewToolbarColor = mVisualizerColor;
+        mStatusBarColor = ThemeUtil.getStatusBarBackgroundColor(mNewToolbarColor);
+        updateBottomBar(animate);
+        updateBottomSheet(bitmap);
+    }
+
+    private void updateBottomBar(boolean animate) {
         if (animate) {
             final int centerX = mBottomBar.getWidth();
             final int centerY = mBottomBar.getHeight();
@@ -424,7 +436,7 @@ public final class SongListFragment extends Fragment implements
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
                     mBottomBar.setVisibility(View.INVISIBLE);
-                    updateBottomBar(song);
+                    setBottomBarContent();
                     updateBottomBarColors();
                     mBottomBar.setVisibility(View.VISIBLE);
                     animShow.start();
@@ -437,21 +449,15 @@ public final class SongListFragment extends Fragment implements
             animShow.setInterpolator(new ValueAnimator().getInterpolator());
             animHide.start();
         } else {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    updateBottomBar(song);
-                    updateBottomBarColors();
-                }
-            });
+            setBottomBarContent();
+            updateBottomBarColors();
         }
-        updateBottomSheet(song);
     }
 
-    private void updateBottomBar(Song song) {
-        applyBitmap(song, mBottomBarAlbumArt);
-        mBottomBarSongTitle.setText(song.getTitle());
-        mBottomBarSongArtist.setText(song.getArtist());
+    private void setBottomBarContent() {
+        applyBitmap(mBottomBarAlbumArt);
+        mBottomBarSongTitle.setText(mCurrentSong.getTitle());
+        mBottomBarSongArtist.setText(mCurrentSong.getArtist());
     }
 
     private void updateBottomBarColors() {
@@ -469,49 +475,49 @@ public final class SongListFragment extends Fragment implements
         mBottomBarPlayPauseButton.setColor(lightTextColor);
     }
 
-    private void updateBottomSheet(final Song song) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mBottomSheetSongTitle.setText(song.getTitle());
-                mBottomSheetSongArtist.setText(song.getArtist());
-                applyBitmap(song, mBottomSheetAlbumArt);
+    private void updateBottomSheet(Bitmap bitmap) {
+        if (mBottomSheetSongTitle != null) {
+            mBottomSheetSongTitle.setText(mCurrentSong.getTitle());
+        }
+        if (mBottomSheetSongArtist != null) {
+            mBottomSheetSongArtist.setText(mCurrentSong.getArtist());
+        }
+        if (bitmap != null) {
+            if (mBottomSheetAlbumArt.getWidth() > bitmap.getWidth()) {
+                mBottomSheetAlbumArt.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            } else {
+                mBottomSheetAlbumArt.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             }
-        });
+            applyBitmap(mBottomSheetAlbumArt);
+        } else {
+            mBottomSheetAlbumArt.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            mBottomSheetAlbumArt.setImageResource(R.drawable.default_artwork);
+        }
+        mBottomSheetVisualizerView.setColor(mVisualizerColor);
+
+        final View cardLayout = mRoot.findViewById(R.id.bottom_sheet_music_control_card_layout);
+        final int cornerRadius =
+                (int) ((CardView) mRoot.findViewById(R.id.bottom_sheet_music_control_card)).getRadius();
+
+        GlideApp.with(SongListFragment.this)
+            .load(mCurrentSong.getAlbumArtUri())
+            .placeholder(R.drawable.default_artwork)
+            .apply(new RequestOptions().transforms(
+                new BlurTransformation(25, 5),
+                new CropTransformation(cardLayout.getWidth(), cardLayout.getHeight(),
+                        CropTransformation.CropType.CENTER),
+                new RoundedCornersTransformation(cornerRadius, 0,
+                        RoundedCornersTransformation.CornerType.ALL),
+                new ColorFilterTransformation(ThemeUtil.getCardBgFilterColor(getActivity()))))
+            .into(new DrawableViewBackgroundTarget(cardLayout));
     }
 
-    private void applyBitmap(final Song song, ImageView iv) {
+    private void applyBitmap(ImageView iv) {
         GlideApp.with(SongListFragment.this)
             .asBitmap()
-            .load(song.getAlbumArtUri())
+            .load(mCurrentSong.getAlbumArtUri())
             .placeholder(R.drawable.default_artwork)
-            .fitCenter()
             .into(iv);
-    }
-
-    private void updateBottomSheetSongInfoLayout(boolean collapsed) {
-        View v = mRoot.findViewById(R.id.bottom_sheet_song_info_layout);
-        if (v == null) {
-            return;
-        }
-
-        int paddingStart = getActivity().getResources().getDimensionPixelOffset(collapsed
-            ? R.dimen.bottom_sheet_collapsed_song_info_padding_start
-            : R.dimen.bottom_sheet_expanded_song_info_padding_start);
-        int paddingEnd = getActivity().getResources().getDimensionPixelOffset(collapsed
-            ? R.dimen.bottom_sheet_collapsed_song_info_padding_end
-            : R.dimen.bottom_sheet_expanded_song_info_padding_end);
-        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) v.getLayoutParams();
-        params.gravity = collapsed ? Gravity.START : Gravity.CENTER_HORIZONTAL;
-        if (mBottomSheet.getTag().equals("landscape")) {
-            int marginTop = collapsed ? 0 : getActivity().getResources().getDimensionPixelOffset(
-                    R.dimen.bottom_sheet_expanded_song_info_margin_top);
-            params.topMargin = marginTop;
-        }
-
-        v.setPaddingRelative(paddingStart, v.getPaddingTop(),
-                paddingEnd, v.getPaddingBottom());
-        v.setLayoutParams(params);
     }
 
     private void updateToolbarAndStatusBarColors() {
@@ -529,7 +535,8 @@ public final class SongListFragment extends Fragment implements
                 : mDefaultStatusBarColor;
         boolean lightToolbar = !ColorHelper.isColorDark(toolbarColor);
         boolean lightStatusBar = !ColorHelper.isColorDark(statusBarColor);
-        mToolbarTextColor = lightToolbar ? mPrimaryTextColorLight : mPrimaryTextColorDark;
+        mToolbarTitleTextColor = lightToolbar ? mPrimaryTextColorLight : mPrimaryTextColorDark;
+        mToolbarSubtitleTextColor = lightToolbar ? mSecondaryTextColorLight : mSecondaryTextColorDark;
 
         ObjectAnimator toolbarBgAnimator = ObjectAnimator.ofInt(toolbar,
                 "backgroundColor", mOldToolbarColor, toolbarColor);
@@ -548,26 +555,38 @@ public final class SongListFragment extends Fragment implements
         if (mLightToolbar != lightToolbar) {
             mLightToolbar = lightToolbar;
 
-            ObjectAnimator toolbarTextAnimator = ObjectAnimator.ofInt(toolbar,
-                    "titleTextColor", mOldToolbarTextColor, mToolbarTextColor);
-            toolbarTextAnimator.setEvaluator(new ArgbEvaluator());
-            toolbarTextAnimator.setDuration(300);
-            toolbarTextAnimator.addListener(new AnimatorListenerAdapter() {
+            ObjectAnimator toolbarTitleTextAnimator = ObjectAnimator.ofInt(toolbar,
+                    "titleTextColor", mOldToolbarTitleTextColor, mToolbarTitleTextColor);
+            toolbarTitleTextAnimator.setEvaluator(new ArgbEvaluator());
+            toolbarTitleTextAnimator.setDuration(300);
+            toolbarTitleTextAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(final Animator animator) {
-                    mOldToolbarTextColor = mToolbarTextColor;
+                    mOldToolbarTitleTextColor = mToolbarTitleTextColor;
                     animator.addListener(null);
                     mPopup.setContentView(getThemedPopupContent());
                 }
             });
-            toolbarTextAnimator.addUpdateListener(new ObjectAnimator.AnimatorUpdateListener() {
+            toolbarTitleTextAnimator.addUpdateListener(new ObjectAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     int color = (int) animation.getAnimatedValue();
                     mMenuItemMore.setIconTintList(ColorStateList.valueOf(color));
                 }
             });
-            animatorlist.add(toolbarTextAnimator);
+            ObjectAnimator toolbarSubtitleTextAnimator = ObjectAnimator.ofInt(toolbar,
+                    "subtitleTextColor", mOldToolbarSubtitleTextColor, mToolbarSubtitleTextColor);
+            toolbarSubtitleTextAnimator.setEvaluator(new ArgbEvaluator());
+            toolbarSubtitleTextAnimator.setDuration(300);
+            toolbarSubtitleTextAnimator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(final Animator animator) {
+                    mOldToolbarSubtitleTextColor = mToolbarSubtitleTextColor;
+                    animator.addListener(null);
+                }
+            });
+            animatorlist.add(toolbarTitleTextAnimator);
+            animatorlist.add(toolbarSubtitleTextAnimator);
         }
 
 
@@ -654,13 +673,14 @@ public final class SongListFragment extends Fragment implements
 
     @Override
     public void onSongClicked(Song song, int position) {
+        mCurrentSong = song;
         boolean playNewSong = false;
         if (mService.isPlaying()) {
             pause();
             playNewSong = true;
         }
-        mService.setSong(song);
-        applyMediaMetadata(song, true);
+        mService.setSong(mCurrentSong);
+        applyMediaMetadata(true);
         if (playNewSong) {
             play();
         }
@@ -689,9 +709,9 @@ public final class SongListFragment extends Fragment implements
             initializePlayPauseProgressButtons();
             mService.setPlaybackInfoListener(mPlaybackListener);
 
-            Song song = mService.getSong();
-            if (song != null) {
-                applyMediaMetadata(song);
+            mCurrentSong = mService.getSong();
+            if (mCurrentSong != null) {
+                applyMediaMetadata();
             }
         }
 
@@ -724,26 +744,51 @@ public final class SongListFragment extends Fragment implements
         public void onSlide(View bottomSheet, float slideOffset) {
             if (slideOffset >= 0) {
                 if (slideOffset > 0) {
-                    mBottomSheet.setClickable(true);
-                    mBottomSheet.setBackgroundColor(ThemeUtil.getColorFromThemeAttribute(
-                            getActivity(), android.R.attr.colorBackground));
-                    mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.VISIBLE);
-                    mBottomSheetSongTitle.setVisibility(View.VISIBLE);
-                    mBottomSheetSongArtist.setVisibility(View.VISIBLE);
-                    mRoot.findViewById(R.id.bottom_sheet_album_art_frame).setVisibility(View.VISIBLE);
+                    if (mUpdateBottomSheetToExpand) {
+                        mUpdateBottomSheetToExpand = false;
+                        mBottomSheet.setClickable(true);
+                        mBottomSheet.setBackgroundColor(ThemeUtil.getColorFromThemeAttribute(
+                                getActivity(), android.R.attr.colorBackground));
+                        mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.VISIBLE);
+                        if (mBottomSheetSongTitle != null) {
+                            mBottomSheetSongTitle.setVisibility(View.VISIBLE);
+                            mRoot.findViewById(R.id.bottom_sheet_music_control_card)
+                                    .setVisibility(View.VISIBLE);
+                        } else {
+                            MainActivity activity = (MainActivity) getActivity();
+                            Toolbar toolbar = activity.getToolbar();
+                            toolbar.setTitle(mService.getSong().getTitle());
+                            toolbar.setSubtitle(mService.getSong().getArtist());
+                        }
+                        if (mBottomSheetSongArtist != null) {
+                            mBottomSheetSongArtist.setVisibility(View.VISIBLE);
+                        }
+                        mRoot.findViewById(R.id.bottom_sheet_album_art_frame).setVisibility(View.VISIBLE);
+                    }
                     if (mBottomBarPlayPauseButton.isEnabled()) {
                         mBottomBarPlayPauseButton.setEnabled(false);
                     }
                     if (!mBottomSheetPlayPauseButton.isEnabled()) {
                         mBottomSheetPlayPauseButton.setEnabled(true);
                     }
-                    updateBottomSheetSongInfoLayout(false);
                 } else {
+                    mUpdateBottomSheetToExpand = true;
                     mBottomSheet.setClickable(false);
                     mBottomSheet.setBackground(null);
                     mRoot.findViewById(R.id.bottom_sheet_drag_handle_frame).setVisibility(View.INVISIBLE);
-                    mBottomSheetSongTitle.setVisibility(View.INVISIBLE);
-                    mBottomSheetSongArtist.setVisibility(View.INVISIBLE);
+                    if (mBottomSheetSongTitle != null) {
+                        mBottomSheetSongTitle.setVisibility(View.INVISIBLE);
+                        mRoot.findViewById(R.id.bottom_sheet_music_control_card)
+                                .setVisibility(View.INVISIBLE);
+                    } else {
+                        MainActivity activity = (MainActivity) getActivity();
+                        Toolbar toolbar = activity.getToolbar();
+                        toolbar.setTitle(R.string.app_name);
+                        toolbar.setSubtitle(null);
+                    }
+                    if (mBottomSheetSongArtist != null) {
+                        mBottomSheetSongArtist.setVisibility(View.INVISIBLE);
+                    }
                     mRoot.findViewById(R.id.bottom_sheet_album_art_frame).setVisibility(View.INVISIBLE);
                     if (!mBottomBarPlayPauseButton.isEnabled()) {
                         mBottomBarPlayPauseButton.setEnabled(true);
@@ -751,7 +796,6 @@ public final class SongListFragment extends Fragment implements
                     if (mBottomSheetPlayPauseButton.isEnabled()) {
                         mBottomSheetPlayPauseButton.setEnabled(false);
                     }
-                    updateBottomSheetSongInfoLayout(true);
                 }
                 if (slideOffset > 0.7 && mUpdateColorsToExpand) {
                     mUpdateColorsToExpand = false;

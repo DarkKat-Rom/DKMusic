@@ -53,9 +53,9 @@
     <FrameLayout
         android:id="@+id/bottom_bar_frame"
         android:layout_width="match_parent"
-        android:layout_height="88dp"
+        android:layout_height="@dimen/bottom_bar_frame_height"
         android:background="?attr/colorBackgroundFloating"
-        android:elevation="4dp">
+        android:elevation="@dimen/bottom_bar_frame_elevation">
 
         <LinearLayout
             android:id="@+id/bottom_bar"

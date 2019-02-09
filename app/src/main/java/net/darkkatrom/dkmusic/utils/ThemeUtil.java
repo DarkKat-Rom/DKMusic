@@ -54,4 +54,9 @@ public class ThemeUtil {
     public static int getDragHandleBgColor(int bottomBarBgColor) {
         return ColorHelper.compositeColors(STATUS_BAR_DARKEN_COLOR, bottomBarBgColor);
     }
+
+    public static int getCardBgFilterColor(Context context) {
+        int defaultCardBgColor = getColorFromThemeAttribute(context, R.attr.colorBackgroundFloating);
+        return (128 << 24) | (defaultCardBgColor & 0x00ffffff);
+    }
 }
