@@ -27,12 +27,13 @@ public class Config {
     public static final String PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN = "show_album_art_on_lock_screen";
     public static final String PREF_KEY_THEME = "theme";
 
-    public static final String KEY_SONG_DATA          = "song_data";
-    public static final String KEY_SONG_TITLE         = "song_title";
-    public static final String KEY_SONG_ARTIST        = "song_artist";
-    public static final String KEY_SONG_ALBUM         = "song_album";
-    public static final String KEY_SONG_ALBUM_ID      = "song_album_id";
-    public static final String KEY_SONG_POSITION      = "song_position";
+    public static final String KEY_SONG_POSITION_IN_LIST = "song_position_in_list";
+    public static final String KEY_SONG_DATA             = "song_data";
+    public static final String KEY_SONG_TITLE            = "song_title";
+    public static final String KEY_SONG_ARTIST           = "song_artist";
+    public static final String KEY_SONG_ALBUM            = "song_album";
+    public static final String KEY_SONG_ALBUM_ID         = "song_album_id";
+    public static final String KEY_SONG_POSITION         = "song_position";
 
     public static final int THEME_MATERIAL_DARKKAT = 0;
     public static final int THEME_MATERIAL         = 1;
@@ -66,6 +67,7 @@ public class Config {
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
 
+        prefs.edit().putInt(KEY_SONG_POSITION_IN_LIST, song.getPositionInList()).commit();
         prefs.edit().putString(KEY_SONG_DATA, song.getData()).commit();
         prefs.edit().putString(KEY_SONG_TITLE, song.getTitle()).commit();
         prefs.edit().putString(KEY_SONG_ARTIST, song.getArtist()).commit();
@@ -85,6 +87,7 @@ public class Config {
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
 
+        int positionInList = prefs.getInt(KEY_SONG_POSITION_IN_LIST, -1);
         String data = prefs.getString(KEY_SONG_DATA, null);
         if (data == null) {
             return null;
@@ -93,7 +96,7 @@ public class Config {
         String artist = prefs.getString(KEY_SONG_ARTIST, null);
         String album = prefs.getString(KEY_SONG_ALBUM, null);
         long albumId = prefs.getLong(KEY_SONG_ALBUM_ID, 0L);
-        return new Song(data, title, artist, album, albumId);
+        return new Song(positionInList, data, title, artist, album, albumId);
     }
 
     public static int getPlaybackPosition(Context context) {

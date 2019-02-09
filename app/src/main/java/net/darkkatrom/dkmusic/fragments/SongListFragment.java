@@ -712,6 +712,10 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
             mCurrentSong = mService.getSong();
             if (mCurrentSong != null) {
                 applyMediaMetadata();
+                int positionInList = mCurrentSong.getPositionInList();
+                if (positionInList != -1) {
+                    mList.getLayoutManager().scrollToPosition(positionInList);
+                }
             }
         }
 
@@ -856,7 +860,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                     String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
                     String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                     long albumId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ID));
-                    songs.add(new Song(data, title, artist, album, albumId));
+                    songs.add(new Song(currentCount - 1, data, title, artist, album, albumId));
                     publishProgress(cursor.getCount(), currentCount);
                     currentCount ++;
                 }

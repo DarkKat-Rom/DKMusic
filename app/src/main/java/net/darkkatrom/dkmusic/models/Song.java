@@ -22,6 +22,7 @@ import android.net.Uri;
 public class Song {
     public static final Uri ALBUM_ART_URI = Uri.parse("content://media/external/audio/albumart");
 
+    private int mPositionInList;
     private String mData;
     private String mTitle;
     private String mArtist;
@@ -29,12 +30,17 @@ public class Song {
     private long mAlbumId;
     private Uri mAlbumArtUri;
 
-    public Song(String data, String title, String artist, String album, long albumId) {
+    public Song(int positionInList, String data, String title, String artist, String album, long albumId) {
+        mPositionInList = positionInList;
         mData = data;
         mTitle = title;
         mArtist = artist;
         mAlbum = album;
         mAlbumId = albumId;
+    }
+
+    public int getPositionInList() {
+        return mPositionInList;
     }
 
     public String getData() {
