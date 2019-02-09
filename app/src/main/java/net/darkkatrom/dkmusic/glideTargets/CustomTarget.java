@@ -12,6 +12,9 @@ import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.bumptech.glide.util.Util;
 
+// This is a copy of:
+// https://github.com/bumptech/glide/blob/master/library/src/main/java/com/bumptech/glide/request/target/CustomTarget.java
+
 /**
  * A base {@link Target} for loading resources ({@link android.graphics.Bitmap}, {@link Drawable}
  * etc) that are used outside of {@link android.view.View}s.
