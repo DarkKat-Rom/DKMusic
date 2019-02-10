@@ -419,6 +419,9 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     }
 
     private void updateBottomBar(boolean animate) {
+        if (!mBottomBar.isAttachedToWindow()) {
+            return;
+        }
         if (animate) {
             final int centerX = mBottomBar.getWidth();
             final int centerY = mBottomBar.getHeight();
