@@ -283,6 +283,10 @@ public class MusicPlaybackService extends Service {
             albumArtCopy = mAlbumArt.copy(config, false);
         }
         mSession.setMetadata(new MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_TITLE, mSong.getTitle())
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, mSong.getArtist())
+                .putString(MediaMetadata.METADATA_KEY_ALBUM, mSong.getAlbum())
+                .putLong(MediaMetadata.METADATA_KEY_DURATION, getDuration())
                 .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArtCopy)
                 .build());
     }
@@ -334,7 +338,7 @@ public class MusicPlaybackService extends Service {
         if (mIsMediaPlayerPrepared && !mMediaPlayer.isPlaying()) {
             mMediaPlayer.start();
             mSession.setPlaybackState(new PlaybackState.Builder()
-                    .setState(PlaybackState.STATE_PLAYING, 0, 1.0f)
+                    .setState(PlaybackState.STATE_PLAYING, getCurrentPosition(), 1.0f)
                     .build());
             mSession.setActive(true);
             startForeground(NotificationUtil.MUSIC_PLAYBACK_NOTIFICATION_ID,
@@ -370,7 +374,7 @@ public class MusicPlaybackService extends Service {
         if (mIsMediaPlayerPrepared && mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             mSession.setPlaybackState(new PlaybackState.Builder()
-                    .setState(PlaybackState.STATE_PAUSED, 0, 1.0f)
+                    .setState(PlaybackState.STATE_PAUSED, getCurrentPosition(), 1.0f)
                     .build());
             stopForeground(false);
             mNotificationUtil.sendNotification(mSong.getTitle(), mSong.getArtist(), mAlbumArt, !isPlaying(),
@@ -385,7 +389,13 @@ public class MusicPlaybackService extends Service {
 
     public void seekTo(int position) {
         if (mIsMediaPlayerPrepared) {
+            int playbackState = mMediaPlayer.isPlaying()
+                    ? PlaybackState.STATE_PLAYING
+                    : PlaybackState.STATE_PAUSED;
             mMediaPlayer.seekTo(position);
+            mSession.setPlaybackState(new PlaybackState.Builder()
+                    .setState(playbackState, getCurrentPosition(), 1.0f)
+                    .build());
         }
     }
 
