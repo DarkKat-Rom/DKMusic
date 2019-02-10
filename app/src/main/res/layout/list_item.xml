@@ -41,6 +41,7 @@
             android:id="@+id/list_item_song_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:singleLine="true"
             android:ellipsize="end"
             android:textSize="@dimen/list_item_song_title_text_size"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
@@ -50,6 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/list_item_artist_title_margin_top"
+            android:singleLine="true"
             android:ellipsize="end"
             android:textSize="@dimen/list_item_artist_title_text_size"
             android:textAppearance="@style/TextAppearance.AppCompat.Small" />
