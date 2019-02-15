@@ -134,8 +134,11 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
     private boolean mUserIsDragging = false;
     private int mDuration;
-    private boolean mShowVisualizer;
+    private boolean mSongListShowVisualizer;
+    private boolean mBottomSheetShowVisualizer;
     private boolean mBottomSheetExpanded = false;
+
+    private int mCurrentSongPosition = -1;
 
     private boolean mUpdateBottomSheetToExpand = true;
     private boolean mUseColorsForExpandedState = true;
@@ -193,7 +196,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
         mCanReadExternalStorage = getActivity().checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
-        mDefaultVisualizerColor = getActivity().getColor(R.color.visualizer_fill_color);
+        mDefaultVisualizerColor = getActivity().getColor(R.color.visualizer_fill_color_default);
 
         mRoot = inflater.inflate(R.layout.fragment_song_list, container, false);
         initializeUI();
@@ -288,8 +291,12 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
         checkPermission();
 
+        mList.setItemAnimator(null);
+
+        mSongListShowVisualizer = Config.getShowVisualizerInSongList(getActivity());
+
         mBottomSheetVisualizerView.initialize(getActivity());
-        mShowVisualizer = Config.getShowVisualizer(getActivity());
+        mBottomSheetShowVisualizer = Config.getShowVisualizerInPlaybackControl(getActivity());
 
         mBottomSheetBehavior.setBottomSheetCallback(new Callback());
         mBottomSheetBehavior.setLocked(true);
@@ -663,10 +670,22 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     }
 
     private void updateVisualizer() {
-        boolean show = Config.getShowVisualizer(getActivity());
-        if (mShowVisualizer != show) {
-            mShowVisualizer = show;
-            if (mShowVisualizer && mBottomSheetExpanded && mService.isPlaying()) {
+        boolean showVisualizerInSongList = Config.getShowVisualizerInSongList(getActivity());
+        boolean showInPlaybackControl = Config.getShowVisualizerInPlaybackControl(getActivity());
+
+        if (mSongListShowVisualizer != showVisualizerInSongList) {
+            mSongListShowVisualizer = showVisualizerInSongList;
+            if (mSongListShowVisualizer && mService.isPlaying()) {
+                mSongs.get(mCurrentSongPosition).setShowVisualizerInList(true);
+                mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+            } else {
+                mSongs.get(mCurrentSongPosition).setShowVisualizerInList(false);
+                mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+            }
+        }
+        if (mBottomSheetShowVisualizer != showInPlaybackControl) {
+            mBottomSheetShowVisualizer = showInPlaybackControl;
+            if (mBottomSheetShowVisualizer && mBottomSheetExpanded && mService.isPlaying()) {
                 mBottomSheetVisualizerView.setPlaying(true);
             } else {
                 mBottomSheetVisualizerView.setPlaying(false);
@@ -682,6 +701,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
             pause();
             playNewSong = true;
         }
+        mCurrentSongPosition = position;
         mService.setSong(mCurrentSong);
         applyMediaMetadata(true);
         if (playNewSong) {
@@ -691,10 +711,46 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
     public void play() {
         mService.play();
+        if (mSongListShowVisualizer) {
+            mSongs.get(mCurrentSongPosition).setShowVisualizerInList(true);
+            mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+        }
+    }
+
+    public void setVisualizerInListPlayingIfNeeded() {
+        if (mService == null || mList.getAdapter() == null || mCurrentSongPosition == -1
+            || !mSongListShowVisualizer) {
+            return;
+        }
+        if (mService.isPlaying()) {
+            boolean isPlaying = mSongs.get(mCurrentSongPosition).getShowVisualizerInList();
+            if (!isPlaying) {
+                mSongs.get(mCurrentSongPosition).setShowVisualizerInList(true);
+                mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+            }
+        }
     }
 
     public void pause() {
+        if (mCurrentSongPosition != -1 && mSongListShowVisualizer) {
+            mSongs.get(mCurrentSongPosition).setShowVisualizerInList(false);
+            mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+        }
         mService.pause();
+    }
+
+    public void setVisualizerInListPausingIfNeeded() {
+        if (mService == null || mList.getAdapter() == null || mCurrentSongPosition == -1
+            || !mSongListShowVisualizer) {
+            return;
+        }
+        if (mService.isPlaying()) {
+            boolean isPlaying = mSongs.get(mCurrentSongPosition).getShowVisualizerInList();
+            if (isPlaying) {
+                mSongs.get(mCurrentSongPosition).setShowVisualizerInList(false);
+                mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+            }
+        }
     }
 
     private void log(String message) {
@@ -715,9 +771,10 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
             mCurrentSong = mService.getSong();
             if (mCurrentSong != null) {
                 applyMediaMetadata();
-                int positionInList = mCurrentSong.getPositionInList();
-                if (positionInList != -1) {
-                    mList.getLayoutManager().scrollToPosition(positionInList);
+                mCurrentSongPosition = mCurrentSong.getPositionInList();
+                if (mCurrentSongPosition != -1) {
+                    mList.getLayoutManager().scrollToPosition(mCurrentSongPosition);
+                    setVisualizerInListPlayingIfNeeded();
                 }
             }
         }
@@ -778,6 +835,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                     if (!mBottomSheetPlayPauseButton.isEnabled()) {
                         mBottomSheetPlayPauseButton.setEnabled(true);
                     }
+                    setVisualizerInListPausingIfNeeded();
                 } else {
                     mUpdateBottomSheetToExpand = true;
                     mBottomSheet.setClickable(false);
@@ -803,6 +861,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                     if (mBottomSheetPlayPauseButton.isEnabled()) {
                         mBottomSheetPlayPauseButton.setEnabled(false);
                     }
+                    setVisualizerInListPlayingIfNeeded();
                 }
                 if (slideOffset > 0.7 && mUpdateColorsToExpand) {
                     mUpdateColorsToExpand = false;
@@ -817,7 +876,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                     updateToolbarAndStatusBarColors();
                 }
                 if (slideOffset == 1) {
-                    if (mShowVisualizer && mService.isPlaying()) {
+                    if (mBottomSheetShowVisualizer && mService.isPlaying()) {
                         mBottomSheetVisualizerView.setPlaying(true);
                     }
                 } else {
@@ -891,6 +950,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
             progressBar.setVisibility(View.GONE);
             rv.setVisibility(View.VISIBLE);
             rv.setAdapter(adapter);
+            setVisualizerInListPlayingIfNeeded();
         }
     }
 
@@ -925,7 +985,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                 case PlaybackInfoListener.State.PLAYING:
                     mBottomSheetPlayPauseButton.resume();
                     mBottomBarPlayPauseButton.resume();
-                    if (mShowVisualizer && mBottomSheetExpanded) {
+                    if (mBottomSheetShowVisualizer && mBottomSheetExpanded) {
                         mBottomSheetVisualizerView.setPlaying(true);
                     }
                     break;

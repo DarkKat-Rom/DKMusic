@@ -16,25 +16,50 @@ limitations under the License.
 <PreferenceScreen
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <SwitchPreference
-        android:key="show_visualizer"
-        android:title="@string/show_visualizer_title"
-        android:summaryOn="@string/show_visualizer_summary_on"
-        android:summaryOff="@string/show_visualizer_summary_off"
-        android:defaultValue="false" />
+    <PreferenceCategory
+        android:key="settings_cat_visualizer"
+        android:title="@string/settings_cat_visualizer">
 
-    <SwitchPreference
-        android:key="show_album_art_on_lock_screen"
-        android:title="@string/show_album_art_on_lock_screen_title"
-        android:summaryOn="@string/show_album_art_on_lock_screen_summary_on"
-        android:summaryOff="@string/show_album_art_on_lock_screen_summary_off"
-        android:defaultValue="true" />
+        <SwitchPreference
+            android:key="show_visualizer_in_song_list"
+            android:title="@string/show_visualizer_in_song_list_title"
+            android:summaryOn="@string/show_visualizer_in_song_list_summary_on"
+            android:summaryOff="@string/show_visualizer_in_song_list_summary_off"
+            android:defaultValue="false" />
 
-    <ListPreference
-        android:key="theme"
-        android:title="@string/theme_title"
-        android:summary="@string/list_preference_default_summary"
-        android:entries="@array/theme_entries"
-        android:entryValues="@array/theme_values"
-        android:defaultValue="0" />
+        <SwitchPreference
+            android:key="show_visualizer"
+            android:title="@string/show_visualizer_in_playback_control_title"
+            android:summaryOn="@string/show_visualizer_in_playback_control_summary_on"
+            android:summaryOff="@string/show_visualizer_in_playback_control_summary_off"
+            android:defaultValue="false" />
+
+	</PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="settings_cat_lock_screen"
+        android:title="@string/settings_cat_lock_screen">
+
+        <SwitchPreference
+            android:key="show_album_art_on_lock_screen"
+            android:title="@string/show_album_art_on_lock_screen_title"
+            android:summaryOn="@string/show_album_art_on_lock_screen_summary_on"
+            android:summaryOff="@string/show_album_art_on_lock_screen_summary_off"
+            android:defaultValue="true" />
+
+	</PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="settings_cat_ui"
+        android:title="@string/settings_cat_ui">
+
+        <ListPreference
+            android:key="theme"
+            android:title="@string/theme_title"
+            android:summary="@string/list_preference_default_summary"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="0" />
+
+	</PreferenceCategory>
 </PreferenceScreen>

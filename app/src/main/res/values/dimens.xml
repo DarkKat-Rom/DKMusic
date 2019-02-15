@@ -62,6 +62,7 @@
     <dimen name="list_item_song_title_text_size">16sp</dimen>
     <dimen name="list_item_artist_title_margin_top">4dp</dimen>
     <dimen name="list_item_artist_title_text_size">12sp</dimen>
+    <dimen name="list_item_visualizer_view_margin_end">8dp</dimen>
     <!-- Main content end -->
 
     <!-- Bottom sheet -->

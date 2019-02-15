@@ -26,7 +26,9 @@
     <color name="toast_background">#e6263238</color> <!-- 90% Material Blue Grey 900 -->
 
     <!-- Color for the visualizer bars -->
-    <color name="visualizer_fill_color">#bffafafa</color>
+    <color name="visualizer_fill_color_default">#bffafafa</color>
+    <color name="visualizer_fill_color_light">#bf000000</color>
+    <color name="visualizer_fill_color_dark">#bfffffff</color>
 
     <!-- Play/pause progress button -->
 

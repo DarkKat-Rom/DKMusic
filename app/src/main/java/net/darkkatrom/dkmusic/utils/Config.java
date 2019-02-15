@@ -23,9 +23,14 @@ import net.darkkatrom.dkmusic.models.Song;
 
 public class Config {
 
-    public static final String PREF_KEY_SHOW_VISUALIZER = "show_visualizer";
-    public static final String PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN = "show_album_art_on_lock_screen";
-    public static final String PREF_KEY_THEME = "theme";
+    public static final String PREF_KEY_SHOW_VISUALIZER_IN_SONG_LIST =
+            "show_visualizer_in_song_list";
+    public static final String PREF_KEY_SHOW_VISUALIZER_IN_PLAYBACK_CONTROL =
+            "show_visualizer";
+    public static final String PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN =
+            "show_album_art_on_lock_screen";
+    public static final String PREF_KEY_THEME =
+            "theme";
 
     public static final String KEY_SONG_POSITION_IN_LIST = "song_position_in_list";
     public static final String KEY_SONG_DATA             = "song_data";
@@ -38,11 +43,18 @@ public class Config {
     public static final int THEME_MATERIAL_DARKKAT = 0;
     public static final int THEME_MATERIAL         = 1;
 
-    public static boolean getShowVisualizer(Context context) {
+    public static boolean getShowVisualizerInSongList(Context context) {
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
 
-        return prefs.getBoolean(PREF_KEY_SHOW_VISUALIZER, false);
+        return prefs.getBoolean(PREF_KEY_SHOW_VISUALIZER_IN_SONG_LIST, false);
+    }
+
+    public static boolean getShowVisualizerInPlaybackControl(Context context) {
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+
+        return prefs.getBoolean(PREF_KEY_SHOW_VISUALIZER_IN_PLAYBACK_CONTROL, false);
     }
 
     public static boolean getShowAlbumArtOnLockScreen(Context context) {

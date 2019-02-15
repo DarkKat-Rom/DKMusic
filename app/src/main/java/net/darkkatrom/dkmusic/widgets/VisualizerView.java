@@ -29,6 +29,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import net.darkkatrom.dkmusic.R;
+import net.darkkatrom.dkmusic.utils.ThemeUtil;
 
 public class VisualizerView extends View {
     private Paint mPaint;
@@ -42,6 +43,8 @@ public class VisualizerView extends View {
     private boolean mPlaying = false;
     private boolean mPowerSaveMode = false;
     private int mColor;
+
+    private static final float MAX_DB_VALUE = (float) (10 * Math.log10(256 * 256 + 256 * 256));
 
     private Visualizer.OnDataCaptureListener mVisualizerListener =
             new Visualizer.OnDataCaptureListener() {
@@ -64,7 +67,7 @@ public class VisualizerView extends View {
                 dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
 
                 mValueAnimators[i].setFloatValues(mFFTPoints[i * 4 + 1],
-                        mFFTPoints[3] - (dbValue * 16f));
+                        mFFTPoints[3] - (dbValue * getHeight() / MAX_DB_VALUE));
                 mValueAnimators[i].start();
             }
         }
@@ -141,7 +144,15 @@ public class VisualizerView extends View {
     }
 
     public void initialize(Context context) {
-        mColor = context.getColor(R.color.visualizer_fill_color);
+        initialize(context, true);
+    }
+
+    public void initialize(Context context, boolean useDefaultFillColor) {
+        if (useDefaultFillColor) {
+            mColor = context.getColor(R.color.visualizer_fill_color_default);
+        } else {
+            mColor = ThemeUtil.getColorFromThemeAttribute(context, R.attr.visualizerFillColor);
+        }
 
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
@@ -179,6 +190,10 @@ public class VisualizerView extends View {
             mPlaying = playing;
             checkStateChanged();
         }
+    }
+
+    public boolean isPlaying() {
+        return mPlaying;
     }
 
     public void setPowerSaveMode(boolean powerSaveMode) {

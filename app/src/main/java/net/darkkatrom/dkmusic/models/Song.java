@@ -29,6 +29,7 @@ public class Song {
     private String mAlbum;
     private long mAlbumId;
     private Uri mAlbumArtUri;
+    private boolean mShowVisualizerInList;
 
     public Song(int positionInList, String data, String title, String artist, String album, long albumId) {
         mPositionInList = positionInList;
@@ -37,6 +38,7 @@ public class Song {
         mArtist = artist;
         mAlbum = album;
         mAlbumId = albumId;
+        mShowVisualizerInList = false;
     }
 
     public int getPositionInList() {
@@ -65,5 +67,13 @@ public class Song {
 
     public Uri getAlbumArtUri() {
         return ContentUris.withAppendedId(ALBUM_ART_URI, getAlbumId());
+    }
+
+    public boolean getShowVisualizerInList() {
+        return mShowVisualizerInList;
+    }
+
+    public void setShowVisualizerInList(boolean show) {
+        mShowVisualizerInList = show;
     }
 }

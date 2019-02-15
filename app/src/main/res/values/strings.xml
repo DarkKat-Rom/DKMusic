@@ -15,6 +15,7 @@
 -->
 <resources>
 
+    <!-- General -->
     <string name="app_name">DarkKat Music</string>
     <string name="settings_title">Settings</string>
     <string name="default_song_title">Title:</string>
@@ -22,27 +23,33 @@
     <string name="list_preference_default_summary">%s</string>
     <string name="dlg_cancel">Cancel</string>
     <string name="dlg_ok">OK</string>
+    <string name="permission_dialog_title">Record audio</string>
+    <string name="permission_dialog_message">The music visualizer needs the permission to \"Record audion\".\nThis permisssion can be granted or denied at any time via:\n(System) Settings -> \"Apps &amp; notifications\" -> \"DarkKat Music\" -> \"Permissions\" -> \"Microphone\".\nClick on \"OK\" to show the system dialog to grant the permission,\nclick on \"Cancel\" to disable the music visualizer.</string>
+    <string name="toast_message">permission denied, visualizer disabled</string>
 
+    <!-- Notification channels -->
     <string name="music_playback_notification_chanel_title">Music playback</string>
     <string name="music_playback_notification_chanel_description">Category used for music playback notifications</string>
 
+    <!-- Song list fragment fragment -->
     <string name="loading_media_title">Loading media ...</string>
     <string name="loading_media_missing_permission_title">Failed to load media, no permission to read media</string>
 
-    <string name="show_visualizer_title">Show music visualizer</string>
-    <string name="show_visualizer_summary_on">Visualizer will be shown</string>
-    <string name="show_visualizer_summary_off">Visualizer won\'t be shown</string>
-
-    <string name="show_album_art_on_lock_screen_title">Show album art on lock screen</string>
-    <string name="show_album_art_on_lock_screen_summary_on">Album art will be shown</string>
-    <string name="show_album_art_on_lock_screen_summary_off">Album art won\'t be shown</string>
-
+    <!-- Settings -->
+    <string name="settings_cat_visualizer">Music visualizer</string>
+    <string name="settings_cat_lock_screen">Lock screen</string>
+    <string name="settings_cat_ui">App ui</string>
+    <string name="show_visualizer_in_song_list_title">Show in song list</string>
+    <string name="show_visualizer_in_song_list_summary_on">Visualizer will be shown in song list</string>
+    <string name="show_visualizer_in_song_list_summary_off">Visualizer won\'t be shown in song list</string>
+    <string name="show_visualizer_in_playback_control_title">Show in playback control</string>
+    <string name="show_visualizer_in_playback_control_summary_on">Visualizer will be shown in playback control</string>
+    <string name="show_visualizer_in_playback_control_summary_off">Visualizer won\'t be shown in playback control</string>
+    <string name="show_album_art_on_lock_screen_title">Show album art</string>
+    <string name="show_album_art_on_lock_screen_summary_on">Album art will be shown on lock screen</string>
+    <string name="show_album_art_on_lock_screen_summary_off">Album art won\'t be shown on lock screen</string>
     <string name="theme_title">Theme</string>
     <string name="theme_material_darkkat">Material (DarkKat version)</string>
     <string name="theme_material_dark">Material (dark version)</string>
     <string name="theme_material_light">Material (light version)</string>
-
-    <string name="permission_dialog_title">Record audio</string>
-    <string name="permission_dialog_message">The music visualizer needs the permission to \"Record audion\".\nThis permisssion can be granted or denied at any time via:\n(System) Settings -> \"Apps &amp; notifications\" -> \"DarkKat Music\" -> \"Permissions\" -> \"Microphone\".\nClick on \"OK\" to show the system dialog to grant the permission,\nclick on \"Cancel\" to disable the music visualizer.</string>
-    <string name="toast_message">permission denied, visualizer disabled</string>
 </resources>

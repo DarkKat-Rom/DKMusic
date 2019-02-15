@@ -22,11 +22,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.GlideApp;
 import net.darkkatrom.dkmusic.models.Song;
+import net.darkkatrom.dkmusic.widgets.VisualizerView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +62,7 @@ public class SongAdapter extends
 
         View v = LayoutInflater.from(mContext).inflate(
                 R.layout.list_item, parent, false);
-        return new SongViewHolder(v);
+        return new SongViewHolder(mContext, v);
     }
 
     @Override
@@ -84,6 +86,8 @@ public class SongAdapter extends
             .into(holder.mAlbumArt);
         holder.mTitle.setText(song.getTitle());
         holder.mArtist.setText(song.getArtist());
+
+        updateVisualizerVisibility(song, holder);
     }
 
     @Override
@@ -95,19 +99,39 @@ public class SongAdapter extends
         mOnSongClickedListener = onItemClickedListener;
     }
 
+    private void updateVisualizerVisibility(Song song, SongViewHolder holder) {
+        boolean showVisualizerInList = song.getShowVisualizerInList();
+        if (showVisualizerInList != holder.mVisualizer.isPlaying()) {
+            RelativeLayout.LayoutParams params =
+                (RelativeLayout.LayoutParams) holder.mTextLayout.getLayoutParams();
+            int ruleToRemove = showVisualizerInList ? RelativeLayout.ALIGN_PARENT_RIGHT : RelativeLayout.LEFT_OF;
+            int ruleToAdd = showVisualizerInList ? RelativeLayout.LEFT_OF : RelativeLayout.ALIGN_PARENT_RIGHT;
+            int subject = showVisualizerInList ? R.id.list_item_visualizer_view : RelativeLayout.TRUE;
+            params.removeRule(ruleToRemove);
+            params.addRule(ruleToAdd, subject);
+            holder.mTextLayout.setLayoutParams(params);
+            holder.mVisualizer.setPlaying(showVisualizerInList);
+        }
+    }
+
     public static class SongViewHolder extends RecyclerView.ViewHolder {
         public View mRootView;
         public ImageView mAlbumArt;
+        public View mTextLayout;
         public TextView mTitle;
         public TextView mArtist;
+        public VisualizerView mVisualizer;
 
-        public SongViewHolder(View v) {
+        public SongViewHolder(Context context, View v) {
             super(v);
 
             mRootView = v;
             mAlbumArt = (ImageView) v.findViewById(R.id.list_item_album_art_small);
+            mTextLayout = v.findViewById(R.id.list_item_song_text_layout);
             mTitle = (TextView) v.findViewById(R.id.list_item_song_title);
             mArtist = (TextView) v.findViewById(R.id.list_item_artist_title);
+            mVisualizer = (VisualizerView) v.findViewById(R.id.list_item_visualizer_view);
+            mVisualizer.initialize(context, false);
         }
     }
 }

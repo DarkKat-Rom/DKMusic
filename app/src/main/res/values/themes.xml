@@ -26,6 +26,7 @@
         <item name="playPauseButtonRippleColor">@color/play_pause_button_ripple_color_dark</item>
         <item name="circularProgressBarColor">@color/circular_progress_bar</item>
         <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background</item>
+        <item name="visualizerFillColor">@color/visualizer_fill_color_dark</item>
         <!-- Copy the colorBackgroundFloating theme attributes to the framework -->
         <item name="android:colorBackgroundFloating">?attr/colorBackgroundFloating</item>
     </style>
@@ -39,6 +40,7 @@
         <item name="playPauseButtonRippleColor">@color/play_pause_button_ripple_color_dark</item>
         <item name="circularProgressBarColor">@color/circular_progress_bar</item>
         <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background</item>
+        <item name="visualizerFillColor">@color/visualizer_fill_color_dark</item>
     </style>
 
     <!-- App theme Light -->
@@ -50,6 +52,7 @@
         <item name="playPauseButtonRippleColor">@color/play_pause_button_ripple_color_light</item>
         <item name="circularProgressBarColor">@color/circular_progress_bar_light</item>
         <item name="circularProgressBarBackgroundColor">@color/circular_progress_bar_background_light</item>
+        <item name="visualizerFillColor">@color/visualizer_fill_color_light</item>
     </style>
 
     <!-- Settings theme DarkKat -->

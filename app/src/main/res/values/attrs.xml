@@ -17,4 +17,5 @@
     <attr name="playPauseButtonRippleColor" format="reference" />
     <attr name="circularProgressBarColor" format="reference" />
     <attr name="circularProgressBarBackgroundColor" format="reference" />
+    <attr name="visualizerFillColor" format="reference" />
 </resources>

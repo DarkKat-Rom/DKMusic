@@ -72,7 +72,8 @@ public class SettingsFragment extends PreferenceFragment implements
     }
 
     private void checkPermission() {
-        if (Config.getShowVisualizer(getActivity())) {
+        if (Config.getShowVisualizerInSongList(getActivity())
+                || Config.getShowVisualizerInPlaybackControl(getActivity())) {
             if (getActivity().checkSelfPermission(permission.RECORD_AUDIO) !=
                     PackageManager.PERMISSION_GRANTED) {
                 showPermissionInfoDialog(DLG_PERMISSION_INFO);
@@ -82,7 +83,8 @@ public class SettingsFragment extends PreferenceFragment implements
 
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
             String key) {
-        if (Config.PREF_KEY_SHOW_VISUALIZER.equals(key)) {
+        if (Config.PREF_KEY_SHOW_VISUALIZER_IN_PLAYBACK_CONTROL.equals(key)
+                || Config.PREF_KEY_SHOW_VISUALIZER_IN_SONG_LIST.equals(key)) {
             checkPermission();
         } else if (Config.PREF_KEY_SHOW_ALBUM_ART_ON_LOCK_SCREEN.equals(key)) {
             Intent musicIntent = new Intent(getActivity(), MusicPlaybackService.class);
@@ -149,7 +151,9 @@ public class SettingsFragment extends PreferenceFragment implements
     }
 
     private void disableVisualizer(boolean showToast) {
-        ((TwoStatePreference) findPreference(Config.PREF_KEY_SHOW_VISUALIZER))
+        ((TwoStatePreference) findPreference(Config.PREF_KEY_SHOW_VISUALIZER_IN_SONG_LIST))
+                .setChecked(false);
+        ((TwoStatePreference) findPreference(Config.PREF_KEY_SHOW_VISUALIZER_IN_PLAYBACK_CONTROL))
                 .setChecked(false);
         if (showToast) {
             showToast(R.string.toast_message);
