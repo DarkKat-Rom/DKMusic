@@ -37,7 +37,9 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetBehavior.BottomSheetCallback;
@@ -82,6 +84,7 @@ import net.darkkatrom.dkmusic.activities.SettingsActivity;
 import net.darkkatrom.dkmusic.adapters.SongAdapter;
 import net.darkkatrom.dkmusic.glideTargets.BitmapHolderTarget;
 import net.darkkatrom.dkmusic.glideTargets.DrawableViewBackgroundTarget;
+import net.darkkatrom.dkmusic.holders.VisualizerHolder;
 import net.darkkatrom.dkmusic.interfaces.BitmapHolder;
 import net.darkkatrom.dkmusic.listeners.PlaybackInfoListener;
 import net.darkkatrom.dkmusic.models.Song;
@@ -130,6 +133,8 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     private PlaybackListener mPlaybackListener;
     private Song mCurrentSong;
 
+    private VisualizerHolder mVisualizerHolder;
+
     private boolean mCanReadExternalStorage = false;
 
     private boolean mUserIsDragging = false;
@@ -139,11 +144,12 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     private boolean mBottomSheetExpanded = false;
 
     private int mCurrentSongPosition = -1;
+    private int mLastSongPosition = mCurrentSongPosition;
 
     private boolean mUpdateBottomSheetToExpand = true;
     private boolean mUseColorsForExpandedState = true;
-    private boolean mUpdateColorsToExpand = true;
-    private boolean mUpdateColorsToCollapse = false;
+    private boolean mUpdateToExpand = true;
+    private boolean mUpdateToCollapse = false;
     private boolean mLightToolbar = false;
     private boolean mLightStatusBar = false;
 
@@ -186,6 +192,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
         mDefaultBottomBarBgColor =
                 ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorBackgroundFloating);
         mPlaybackListener = new PlaybackListener();
+        mVisualizerHolder = new VisualizerHolder();
 
         setHasOptionsMenu(true);
     }
@@ -232,6 +239,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
         mService.setPlaybackInfoListener(null);
         getActivity().unbindService(mConnection);
+        mVisualizerHolder.unlinkVisualizer();
     }
 
     @Override
@@ -295,7 +303,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
         mSongListShowVisualizer = Config.getShowVisualizerInSongList(getActivity());
 
-        mBottomSheetVisualizerView.initialize(getActivity());
+        mBottomSheetVisualizerView.initialize(getActivity(), mVisualizerHolder);
         mBottomSheetShowVisualizer = Config.getShowVisualizerInPlaybackControl(getActivity());
 
         mBottomSheetBehavior.setBottomSheetCallback(new Callback());
@@ -696,12 +704,12 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     @Override
     public void onSongClicked(Song song, int position) {
         mCurrentSong = song;
+        mCurrentSongPosition = position;
         boolean playNewSong = false;
         if (mService.isPlaying()) {
             pause();
             playNewSong = true;
         }
-        mCurrentSongPosition = position;
         mService.setSong(mCurrentSong);
         applyMediaMetadata(true);
         if (playNewSong) {
@@ -711,9 +719,19 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
     public void play() {
         mService.play();
-        if (mSongListShowVisualizer) {
-            mSongs.get(mCurrentSongPosition).setShowVisualizerInList(true);
-            mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+        if (mSongListShowVisualizer && !mBottomSheetExpanded) {
+            if (mCurrentSongPosition != -1) {
+                mSongs.get(mCurrentSongPosition).setShowVisualizerInList(true);
+                mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+                if (mCurrentSongPosition != mLastSongPosition) {
+                    mSongs.get(mLastSongPosition).setShowVisualizerInList(false);
+                    mList.getAdapter().notifyItemChanged(mLastSongPosition);
+                }
+
+            }
+        }
+        if (mLastSongPosition != mCurrentSongPosition) {
+            mLastSongPosition = mCurrentSongPosition;
         }
     }
 
@@ -732,9 +750,11 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     }
 
     public void pause() {
-        if (mCurrentSongPosition != -1 && mSongListShowVisualizer) {
-            mSongs.get(mCurrentSongPosition).setShowVisualizerInList(false);
-            mList.getAdapter().notifyItemChanged(mCurrentSongPosition);
+        if (mLastSongPosition != -1 && mSongListShowVisualizer && !mBottomSheetExpanded) {
+            if (mLastSongPosition == mCurrentSongPosition) {
+                mSongs.get(mLastSongPosition).setShowVisualizerInList(false);
+                mList.getAdapter().notifyItemChanged(mLastSongPosition);
+            }
         }
         mService.pause();
     }
@@ -772,6 +792,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
             if (mCurrentSong != null) {
                 applyMediaMetadata();
                 mCurrentSongPosition = mCurrentSong.getPositionInList();
+                mLastSongPosition = mCurrentSongPosition;
                 if (mCurrentSongPosition != -1) {
                     mList.getLayoutManager().scrollToPosition(mCurrentSongPosition);
                     setVisualizerInListPlayingIfNeeded();
@@ -828,6 +849,9 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                             mBottomSheetSongArtist.setVisibility(View.VISIBLE);
                         }
                         mRoot.findViewById(R.id.bottom_sheet_album_art_frame).setVisibility(View.VISIBLE);
+                        if (mBottomSheetShowVisualizer && mService.isPlaying()) {
+                            mBottomSheetVisualizerView.setPlaying(true);
+                        }
                     }
                     if (mBottomBarPlayPauseButton.isEnabled()) {
                         mBottomBarPlayPauseButton.setEnabled(false);
@@ -835,7 +859,6 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                     if (!mBottomSheetPlayPauseButton.isEnabled()) {
                         mBottomSheetPlayPauseButton.setEnabled(true);
                     }
-                    setVisualizerInListPausingIfNeeded();
                 } else {
                     mUpdateBottomSheetToExpand = true;
                     mBottomSheet.setClickable(false);
@@ -861,26 +884,21 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                     if (mBottomSheetPlayPauseButton.isEnabled()) {
                         mBottomSheetPlayPauseButton.setEnabled(false);
                     }
-                    setVisualizerInListPlayingIfNeeded();
+                    mBottomSheetVisualizerView.setPlaying(false);
                 }
-                if (slideOffset > 0.7 && mUpdateColorsToExpand) {
-                    mUpdateColorsToExpand = false;
-                    mUpdateColorsToCollapse = true;
+                if (slideOffset > 0.7 && mUpdateToExpand) {
+                    setVisualizerInListPausingIfNeeded();
+                    mUpdateToExpand = false;
+                    mUpdateToCollapse = true;
                     mUseColorsForExpandedState = true;
                     updateToolbarAndStatusBarColors();
                 }
-                if (slideOffset < 0.7 && mUpdateColorsToCollapse) {
-                    mUpdateColorsToExpand = true;
-                    mUpdateColorsToCollapse = false;
+                if (slideOffset < 0.7 && mUpdateToCollapse) {
+                    setVisualizerInListPlayingIfNeeded();
+                    mUpdateToExpand = true;
+                    mUpdateToCollapse = false;
                     mUseColorsForExpandedState = false;
                     updateToolbarAndStatusBarColors();
-                }
-                if (slideOffset == 1) {
-                    if (mBottomSheetShowVisualizer && mService.isPlaying()) {
-                        mBottomSheetVisualizerView.setPlaying(true);
-                    }
-                } else {
-                    mBottomSheetVisualizerView.setPlaying(false);
                 }
             }
         }
@@ -944,7 +962,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
 
         @Override
         protected void onPostExecute(String result) {
-            SongAdapter adapter = new SongAdapter(context, songs);
+            SongAdapter adapter = new SongAdapter(context, songs, mVisualizerHolder);
             adapter.setOnSongClickedListener(listener);
             text.setVisibility(View.GONE);
             progressBar.setVisibility(View.GONE);

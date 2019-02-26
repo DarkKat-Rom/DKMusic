@@ -23,17 +23,17 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.media.audiofx.Visualizer;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.View;
 
 import net.darkkatrom.dkmusic.R;
+import net.darkkatrom.dkmusic.holders.VisualizerHolder;
 import net.darkkatrom.dkmusic.utils.ThemeUtil;
 
-public class VisualizerView extends View {
+public class VisualizerView extends View implements VisualizerHolder.Listener {
+    private VisualizerHolder mVisualizerHolder;
     private Paint mPaint;
-    private Visualizer mVisualizer;
     private ObjectAnimator mVisualizerColorAnimator;
 
     private ValueAnimator[] mValueAnimators = new ValueAnimator[32];
@@ -46,58 +46,25 @@ public class VisualizerView extends View {
 
     private static final float MAX_DB_VALUE = (float) (10 * Math.log10(256 * 256 + 256 * 256));
 
-    private Visualizer.OnDataCaptureListener mVisualizerListener =
-            new Visualizer.OnDataCaptureListener() {
+    @Override
+    public void onFftDataCapture(byte[] fft) {
         byte rfk, ifk;
         int dbValue;
         float magnitude;
 
-        @Override
-        public void onWaveFormDataCapture(Visualizer visualizer, byte[] bytes, int samplingRate) {
+        for (int i = 0; i < 32; i++) {
+            mValueAnimators[i].cancel();
+
+            rfk = fft[i * 2 + 2];
+            ifk = fft[i * 2 + 3];
+            magnitude = !mPlaying ? 0 : rfk * rfk + ifk * ifk;
+            dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
+
+            mValueAnimators[i].setFloatValues(mFFTPoints[i * 4 + 1],
+                    mFFTPoints[3] - (dbValue * getHeight() / MAX_DB_VALUE));
+            mValueAnimators[i].start();
         }
-
-        @Override
-        public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
-            for (int i = 0; i < 32; i++) {
-                mValueAnimators[i].cancel();
-
-                rfk = fft[i * 2 + 2];
-                ifk = fft[i * 2 + 3];
-                magnitude = rfk * rfk + ifk * ifk;
-                dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
-
-                mValueAnimators[i].setFloatValues(mFFTPoints[i * 4 + 1],
-                        mFFTPoints[3] - (dbValue * getHeight() / MAX_DB_VALUE));
-                mValueAnimators[i].start();
-            }
-        }
-    };
-
-    private final Runnable mLinkVisualizer = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                mVisualizer = new Visualizer(0);
-            } catch (Exception e) {
-                return;
-            }
-
-            mVisualizer.setEnabled(false);
-            mVisualizer.setCaptureSize(66);
-            mVisualizer.setDataCaptureListener(mVisualizerListener, Visualizer.getMaxCaptureRate(),
-                    false, true);
-            mVisualizer.setEnabled(true);
-        }
-    };
-
-    private final Runnable mUnlinkVisualizer = new Runnable() {
-        @Override
-        public void run() {
-            mVisualizer.setEnabled(false);
-            mVisualizer.release();
-            mVisualizer = null;
-        }
-    };
+    }
 
     public VisualizerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -138,16 +105,15 @@ public class VisualizerView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (mVisualizer != null) {
-            canvas.drawLines(mFFTPoints, mPaint);
-        }
+        canvas.drawLines(mFFTPoints, mPaint);
     }
 
-    public void initialize(Context context) {
-        initialize(context, true);
+    public void initialize(Context context, VisualizerHolder holder) {
+        initialize(context, holder, true);
     }
 
-    public void initialize(Context context, boolean useDefaultFillColor) {
+    public void initialize(Context context, VisualizerHolder holder, boolean useDefaultFillColor) {
+        mVisualizerHolder = holder;
         if (useDefaultFillColor) {
             mColor = context.getColor(R.color.visualizer_fill_color_default);
         } else {
@@ -186,9 +152,13 @@ public class VisualizerView extends View {
     }
 
     public void setPlaying(boolean playing) {
+        setPlaying(playing, true);
+    }
+
+    public void setPlaying(boolean playing, boolean applyVisibility) {
         if (mPlaying != playing) {
             mPlaying = playing;
-            checkStateChanged();
+            checkStateChanged(applyVisibility);
         }
     }
 
@@ -204,16 +174,20 @@ public class VisualizerView extends View {
     }
 
     public void setColor(int color) {
+        setColor(color, true);
+    }
+
+    public void setColor(int color, boolean animate) {
         color = Color.argb(191, Color.red(color), Color.green(color), Color.blue(color));
 
         if (mColor != color) {
             mColor = color;
 
-            if (mVisualizer != null) {
-                if (mVisualizerColorAnimator != null) {
-                    mVisualizerColorAnimator.cancel();
-                }
+            if (mVisualizerColorAnimator != null) {
+                mVisualizerColorAnimator.cancel();
+            }
 
+            if (mPlaying && animate) {
                 mVisualizerColorAnimator = ObjectAnimator.ofArgb(mPaint, "color",
                         mPaint.getColor(), mColor);
                 mVisualizerColorAnimator.setStartDelay(600);
@@ -225,16 +199,34 @@ public class VisualizerView extends View {
         }
     }
 
+    public void unListen() {
+        mVisualizerHolder.removeListener(this);
+    }
+
     private void checkStateChanged() {
-        if (mVisible && mPlaying && !mPowerSaveMode) {
-            if (mVisualizer == null) {
-                AsyncTask.execute(mLinkVisualizer);
-                animate().alpha(1f).setDuration(300);
-            }
-        } else {
-            if (mVisualizer != null) {
-                animate().alpha(0f).setDuration(0);
-                AsyncTask.execute(mUnlinkVisualizer);
+        checkStateChanged(true);
+    }
+
+    private void checkStateChanged(boolean applyVisibility) {
+        boolean show = mVisible && mPlaying && !mPowerSaveMode;
+
+        if (show) {
+            mVisualizerHolder.addListener(this);
+        }
+        if (applyVisibility) {
+            float end = show ? 1f : 0f;
+            ValueAnimator animator = ValueAnimator.ofFloat(getAlpha(), end);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    setAlpha((float) animation.getAnimatedValue());
+                }
+            });
+            animator.setDuration(300);
+            animator.start();
+
+            if (!show) {
+                mVisualizerHolder.removeListener(this);
             }
         }
     }

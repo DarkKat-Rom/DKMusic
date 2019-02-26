@@ -70,7 +70,7 @@
                 android:layout_alignStart="@id/bottom_sheet_album_art"
                 android:layout_alignEnd="@id/bottom_sheet_album_art"
                 android:gravity="bottom"
-                android:visibility="visible" />
+                android:alpha="0" />
 
         </RelativeLayout>
 

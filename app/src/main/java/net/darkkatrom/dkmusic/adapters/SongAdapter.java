@@ -16,17 +16,21 @@
 
 package net.darkkatrom.dkmusic.adapters;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewPropertyAnimator;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import net.darkkatrom.dkmusic.R;
 import net.darkkatrom.dkmusic.GlideApp;
+import net.darkkatrom.dkmusic.holders.VisualizerHolder;
 import net.darkkatrom.dkmusic.models.Song;
 import net.darkkatrom.dkmusic.widgets.VisualizerView;
 
@@ -38,6 +42,7 @@ public class SongAdapter extends
 
     private Context mContext;
     private List<Song> mSongs;
+    private VisualizerHolder mVisualizerHolder;
 
     private OnSongClickedListener mOnSongClickedListener;
 
@@ -45,7 +50,7 @@ public class SongAdapter extends
         public void onSongClicked(Song song, int position);
     }
 
-    public SongAdapter(Context context, List<Song> songs) {
+    public SongAdapter(Context context, List<Song> songs, VisualizerHolder holder) {
         super();
 
         mContext = context;
@@ -54,6 +59,7 @@ public class SongAdapter extends
         } else {
             mSongs = new ArrayList<Song>();
         }
+        mVisualizerHolder = holder;
     }
 
     @Override
@@ -62,7 +68,7 @@ public class SongAdapter extends
 
         View v = LayoutInflater.from(mContext).inflate(
                 R.layout.list_item, parent, false);
-        return new SongViewHolder(mContext, v);
+        return new SongViewHolder(mContext, v, mVisualizerHolder);
     }
 
     @Override
@@ -99,18 +105,40 @@ public class SongAdapter extends
         mOnSongClickedListener = onItemClickedListener;
     }
 
-    private void updateVisualizerVisibility(Song song, SongViewHolder holder) {
+    private void updateVisualizerVisibility(Song song, final SongViewHolder holder) {
         boolean showVisualizerInList = song.getShowVisualizerInList();
         if (showVisualizerInList != holder.mVisualizer.isPlaying()) {
-            RelativeLayout.LayoutParams params =
+            final RelativeLayout.LayoutParams params =
                 (RelativeLayout.LayoutParams) holder.mTextLayout.getLayoutParams();
-            int ruleToRemove = showVisualizerInList ? RelativeLayout.ALIGN_PARENT_RIGHT : RelativeLayout.LEFT_OF;
-            int ruleToAdd = showVisualizerInList ? RelativeLayout.LEFT_OF : RelativeLayout.ALIGN_PARENT_RIGHT;
-            int subject = showVisualizerInList ? R.id.list_item_visualizer_view : RelativeLayout.TRUE;
-            params.removeRule(ruleToRemove);
-            params.addRule(ruleToAdd, subject);
-            holder.mTextLayout.setLayoutParams(params);
-            holder.mVisualizer.setPlaying(showVisualizerInList);
+            final int ruleToRemove = showVisualizerInList ? RelativeLayout.ALIGN_PARENT_RIGHT : RelativeLayout.LEFT_OF;
+            final int ruleToAdd = showVisualizerInList ? RelativeLayout.LEFT_OF : RelativeLayout.ALIGN_PARENT_RIGHT;
+            final int subject = showVisualizerInList ? R.id.list_item_visualizer_view : RelativeLayout.TRUE;
+
+            if (showVisualizerInList) {
+                params.removeRule(ruleToRemove);
+                params.addRule(ruleToAdd, subject);
+                holder.mTextLayout.setLayoutParams(params);
+                holder.mVisualizer.setPlaying(true);
+            } else {
+                final ViewPropertyAnimator alphaAnimator = holder.mVisualizer.animate().alpha(0f);
+                alphaAnimator.setDuration(300);
+                alphaAnimator.setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+                        holder.mVisualizer.setPlaying(false, false);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        alphaAnimator.setListener(null);
+                        holder.mVisualizer.unListen();
+                        params.removeRule(ruleToRemove);
+                        params.addRule(ruleToAdd, subject);
+                        holder.mTextLayout.setLayoutParams(params);
+                    }
+                });
+                alphaAnimator.start();
+            }
         }
     }
 
@@ -122,7 +150,7 @@ public class SongAdapter extends
         public TextView mArtist;
         public VisualizerView mVisualizer;
 
-        public SongViewHolder(Context context, View v) {
+        public SongViewHolder(Context context, View v, VisualizerHolder holder) {
             super(v);
 
             mRootView = v;
@@ -131,7 +159,7 @@ public class SongAdapter extends
             mTitle = (TextView) v.findViewById(R.id.list_item_song_title);
             mArtist = (TextView) v.findViewById(R.id.list_item_artist_title);
             mVisualizer = (VisualizerView) v.findViewById(R.id.list_item_visualizer_view);
-            mVisualizer.initialize(context, false);
+            mVisualizer.initialize(context, holder, false);
         }
     }
 }
