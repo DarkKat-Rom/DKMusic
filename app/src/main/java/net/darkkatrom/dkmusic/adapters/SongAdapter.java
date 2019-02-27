@@ -43,6 +43,7 @@ public class SongAdapter extends
     private Context mContext;
     private List<Song> mSongs;
     private VisualizerHolder mVisualizerHolder;
+    private boolean mPowerSaveMode = false;
 
     private OnSongClickedListener mOnSongClickedListener;
 
@@ -105,8 +106,12 @@ public class SongAdapter extends
         mOnSongClickedListener = onItemClickedListener;
     }
 
+    public void setPowerSaveMode(boolean powerSaveMode) {
+        mPowerSaveMode = powerSaveMode;
+    }
+
     private void updateVisualizerVisibility(Song song, final SongViewHolder holder) {
-        boolean showVisualizerInList = song.getShowVisualizerInList();
+        boolean showVisualizerInList = song.getShowVisualizerInList() && !mPowerSaveMode;
         if (showVisualizerInList != holder.mVisualizer.isPlaying()) {
             final RelativeLayout.LayoutParams params =
                 (RelativeLayout.LayoutParams) holder.mTextLayout.getLayoutParams();

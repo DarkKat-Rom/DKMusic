@@ -23,7 +23,9 @@ import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.IntentFilter;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -40,6 +42,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetBehavior.BottomSheetCallback;
@@ -131,6 +134,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     private List<Song> mSongs;
     private MusicPlaybackService mService;
     private PlaybackListener mPlaybackListener;
+    private PowerSaveModeReceiver mPowerSaveModeReceiver;
     private Song mCurrentSong;
 
     private VisualizerHolder mVisualizerHolder;
@@ -142,6 +146,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     private boolean mSongListShowVisualizer;
     private boolean mBottomSheetShowVisualizer;
     private boolean mBottomSheetExpanded = false;
+    private boolean mPowerSaveMode = false;
 
     private int mCurrentSongPosition = -1;
     private int mLastSongPosition = mCurrentSongPosition;
@@ -193,7 +198,7 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                 ThemeUtil.getColorFromThemeAttribute(getActivity(), R.attr.colorBackgroundFloating);
         mPlaybackListener = new PlaybackListener();
         mVisualizerHolder = new VisualizerHolder();
-
+        mPowerSaveModeReceiver = new PowerSaveModeReceiver();
         setHasOptionsMenu(true);
     }
 
@@ -208,6 +213,10 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
         mRoot = inflater.inflate(R.layout.fragment_song_list, container, false);
         initializeUI();
         initializePopupWindow();
+
+        final IntentFilter filter = new IntentFilter();
+        filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
+        getActivity().registerReceiver(mPowerSaveModeReceiver, filter);
 
         return mRoot;
     }
@@ -240,6 +249,16 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
         mService.setPlaybackInfoListener(null);
         getActivity().unbindService(mConnection);
         mVisualizerHolder.unlinkVisualizer();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        try {
+            getActivity().unregisterReceiver(mPowerSaveModeReceiver);
+        } catch (final Throwable e) {
+        }
     }
 
     @Override
@@ -678,10 +697,24 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
     }
 
     private void updateVisualizer() {
+        PowerManager pm = (PowerManager) getActivity().getSystemService(Context.POWER_SERVICE);
+        boolean forceItemChange = pm.isPowerSaveMode() != mPowerSaveMode;
+        mPowerSaveMode = pm.isPowerSaveMode();
+        if (mPowerSaveMode) {
+            mVisualizerHolder.setPowerSaveMode(true);
+            mBottomSheetVisualizerView.setPowerSaveMode(true);
+        } else {
+            mVisualizerHolder.setPowerSaveMode(false);
+            mBottomSheetVisualizerView.setPowerSaveMode(false);
+        }
+        if (mList.getAdapter() != null) {
+            ((SongAdapter) mList.getAdapter()).setPowerSaveMode(mPowerSaveMode);
+        }
+
         boolean showVisualizerInSongList = Config.getShowVisualizerInSongList(getActivity());
         boolean showInPlaybackControl = Config.getShowVisualizerInPlaybackControl(getActivity());
 
-        if (mSongListShowVisualizer != showVisualizerInSongList) {
+        if (mSongListShowVisualizer != showVisualizerInSongList || forceItemChange) {
             mSongListShowVisualizer = showVisualizerInSongList;
             if (mSongListShowVisualizer && mService.isPlaying()) {
                 mSongs.get(mCurrentSongPosition).setShowVisualizerInList(true);
@@ -1026,6 +1059,17 @@ public final class SongListFragment extends Fragment implements BitmapHolder,
                     mBottomBarPlayPauseButton.setEnabled(false);
                     mBottomSheetBehavior.setLocked(true);
                     break;
+            }
+        }
+    }
+
+    public class PowerSaveModeReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            final String action = intent.getAction();
+            if (action.equals(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)) {
+                updateVisualizer();
             }
         }
     }

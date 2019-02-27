@@ -27,6 +27,8 @@ public class VisualizerHolder implements Visualizer.OnDataCaptureListener {
 
     private Visualizer mVisualizer;
 
+    private boolean mPowerSaveMode = false;
+
     private List<Listener> mListeners;
 
     public interface Listener {
@@ -39,7 +41,7 @@ public class VisualizerHolder implements Visualizer.OnDataCaptureListener {
     }
 
     public void addListener(Listener listener) {
-        boolean linkVisualizer = mListeners.isEmpty();
+        boolean linkVisualizer = !mPowerSaveMode && mListeners.isEmpty();
         mListeners.add(listener);
         if (linkVisualizer) {
             AsyncTask.execute(mLinkVisualizer);
@@ -48,7 +50,7 @@ public class VisualizerHolder implements Visualizer.OnDataCaptureListener {
 
     public void removeListener(Listener listener) {
         mListeners.remove(listener);
-        if (mListeners.isEmpty()) {
+        if (!mPowerSaveMode && mListeners.isEmpty()) {
             AsyncTask.execute(mUnlinkVisualizer);
         }
     }
@@ -77,6 +79,21 @@ public class VisualizerHolder implements Visualizer.OnDataCaptureListener {
         }
     }
 
+    public void setPowerSaveMode(boolean powerSaveMode) {
+        if (mPowerSaveMode != powerSaveMode) {
+            mPowerSaveMode = powerSaveMode;
+            if (mPowerSaveMode) {
+                if (mVisualizer != null) {
+                    AsyncTask.execute(mUnlinkVisualizer);
+                }
+            } else {
+                if (mVisualizer == null && !mListeners.isEmpty()) {
+                    AsyncTask.execute(mLinkVisualizer);
+                }
+            }
+        }
+    }
+
     private final Runnable mLinkVisualizer = new Runnable() {
         @Override
         public void run() {
@@ -97,9 +114,12 @@ public class VisualizerHolder implements Visualizer.OnDataCaptureListener {
     private final Runnable mUnlinkVisualizer = new Runnable() {
         @Override
         public void run() {
-            mVisualizer.setEnabled(false);
-            mVisualizer.release();
-            mVisualizer = null;
+            try {
+                mVisualizer.setEnabled(false);
+                mVisualizer.release();
+                mVisualizer = null;
+            } catch (Exception e) {
+            }
         }
     };
 }
